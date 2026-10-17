@@ -748,6 +748,10 @@ async function exportModelXLSX() {
         items.splice(pos, 0, it);
       });
       firstChanged = 0;
+    } else if (mode === 'prepend') {
+      // 依序附加在頂端：第 1 筆在第 2 列、第 2 筆在第 3 列…，原有資料整體往下移
+      items.unshift(...newItems);
+      firstChanged = 0;
     } else {
       firstChanged = items.length;
       items.push(...newItems);
@@ -812,7 +816,8 @@ async function exportModelXLSX() {
     link.click();
     document.body.removeChild(link);
     setTimeout(() => URL.revokeObjectURL(url), 2000);
-    showNotice('exportMsg', `🎉 資料模型已下載（新增 ${newItems.length} 筆，${mode === 'random' ? '隨機排列' : '附加於最底部'}）！`);
+    const modeLabel = { random: '隨機排列', prepend: '依序附加在頂端', append: '依序附加在底部' }[mode];
+    showNotice('exportMsg', `🎉 資料模型已下載（新增 ${newItems.length} 筆，${modeLabel}）！`);
   } catch (err) {
     showNotice('exportMsg', '匯出失敗：' + err.message, true);
   } finally {
