@@ -21,7 +21,7 @@
       <input type="text" id="userName" placeholder="請輸入您的名字">
     </div>
     <div style="flex: 2; min-width: 320px;">
-      <label>HEGAIImage 權重：</label>
+      <label>HEGAIImage權重設定</label>
       <div class="slider-row" style="margin-top: 6px;">
         <span class="weight-label">圖圖相符(<span id="percentV1">--%</span>)</span>
         <input type="range" id="weightSlider" min="0" max="100" step="1" oninput="onWeightSliderChange(this.value)">
@@ -38,7 +38,7 @@
   <input type="hidden" id="editingIndex" value="-1">
 
   <div class="tabs"> 
-    <div class="tab-btn active" id="btn-tab1">Step 1: KWS AI語音生圖 與 Distance/Light 評估</div>
+    <div class="tab-btn active" id="btn-tab1">Step 1: 語音生圖 與 Distance/Light 評估</div>
     <div class="tab-btn" id="btn-tab2">Step 2: 圖生文 與 HEGAIText 評估</div>
     <div class="tab-btn" id="btn-tab3">Step 3: 文生圖 與 HEGAIImage 評估</div>
     <div class="tab-btn" id="btn-tab4">收集清單<span id="tabListCount" class="counter-badge">0</span></div>
@@ -46,10 +46,10 @@
 
   <!-- Step 1 -->
   <div id="tab-Step1" class="card tab-pane active">
-    <div class="card-title"><span class="badge">Step 1</span> 語音輸入生成圖片 與 Distance/Light 評估</div>
+    <div class="card-title"><span class="badge">Step 1</span> KWS AI 語音輸入生成圖片 與 Distance/Light 評估</div>
     
     <p class="intro-desc">
-      請前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a> 進行語音輸入並生成圖片。下載圖片後，將產生的文字、圖片與評估參數記錄於下方：
+      請前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a> 進行語音輸入並生成圖片。下載圖片後，將產生的文字、圖片與評估參數記錄於下方
     </p>
     
     <div class="form-group">
@@ -100,7 +100,7 @@
     <div class="card-title"><span class="badge">Step 2</span>圖片生成文字描述 與 HEGAIText 評估</div>
     
     <p class="intro-desc">
-      請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳"Generated Image"，使用模型 (如 Llama 3.2) 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估：
+      請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳 Generated Image，使用模型 Llama 3.2/Gemma 4 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估
     </p>
 
     <div class="compare-panel">
@@ -112,12 +112,12 @@
     </div>
 
     <div class="form-group">
-      <label for="gaiText">GAIText (English)</label>
-      <textarea id="gaiText" rows="2" placeholder="由Generated Image生成的描述文字"></textarea>
+      <label for="gaiText">GAIText (English or Chinese)</label>
+      <textarea id="gaiText" rows="2" placeholder="由 Generated Image 生成的描述文字"></textarea>
     </div>
     
     <div class="form-group">
-      <label for="hegaiText">HEGAIText (評估GAIText與圖片的相符程度，0-10 分):</label>
+      <label for="hegaiText">HEGAIText (評估 GAIText 與圖片的相符程度，0-10 分):</label>
       <div class="slider-row">
         <input type="range" id="hegaiTextRange" min="0" max="10" step="1" value="5" oninput="syncInput('hegaiTextRange', 'hegaiText', false, 0, 10)">
         <input type="number" id="hegaiText" class="val-input" min="0" max="10" value="" placeholder="未定" oninput="syncInput('hegaiText', 'hegaiTextRange', false, 0, 10)">
@@ -137,7 +137,7 @@
     <div class="card-title"><span class="badge">Step 3</span> 文字描述生成圖片 與 HEGAIImage 評估</div>
 
     <p class="intro-desc">
-      請再次前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a>，輸入 GAIText (English) 來生成"GAIImage"，並進行 HEGAIImage 評估：
+      請再次前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a>，輸入 GAIText (English) 來生成 GAIImage，並進行 HEGAIImage 評估：
     </p>
     
     <div class="form-group" style="background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
@@ -147,7 +147,7 @@
     </div>
 
     <div class="compare-panel">
-      <div class="compare-title">評估「Generated Image」與「GAIImage」的相符程度</div>
+      <div class="compare-title">評估 Generated Image 與 GAIImage 的相符程度</div>
       <div class="compare-row">
         <div class="compare-item">
           
@@ -163,7 +163,7 @@
       </div>
       
       <div class="form-group" style="margin-top: 12px;">
-        <label for="v1">HEGAIImage_v1 (評估「Generated Image」與「GAIImage」的相符程度，0-10 分):</label>
+        <label for="v1">HEGAIImage_v1 (評估 Generated Image 與 GAIImage 的相符程度，0-10 分):</label>
         <div class="slider-row">
           <input type="range" id="v1Range" min="0" max="10" step="1" value="5" oninput="syncInput('v1Range', 'v1', true, 0, 10)">
           <input type="number" id="v1" class="val-input" min="0" max="10" value="" placeholder="未定" oninput="syncInput('v1', 'v1Range', true, 0, 10)">
@@ -173,7 +173,7 @@
     </div>
 
     <div class="compare-panel">
-      <div class="compare-title">評估「GAIImage」圖片與「GAIText (English)」的相符程度</div>
+      <div class="compare-title">評估 GAIImage 圖片與 GAIText (English) 的相符程度</div>
 <div class="compare-row">
   <div class="compare-item">
     <span>GAIText (English)</span>
@@ -187,7 +187,7 @@
   </div>
 </div>
       <div class="form-group" style="margin-top: 12px;">
-        <label for="v2">HEGAIImage_v2 (評估「GAIImage」圖片與「GAIText (English)」的相符程度，0-10 分):</label>
+        <label for="v2">HEGAIImage_v2 (評估 GAIImage 圖片與 GAIText (English) 的相符程度，0-10 分):</label>
         <div class="slider-row">
           <input type="range" id="v2Range" min="0" max="10" step="1" value="5" oninput="syncInput('v2Range', 'v2', true, 0, 10)">
           <input type="number" id="v2" class="val-input" min="0" max="10" value="" placeholder="未定" oninput="syncInput('v2', 'v2Range', true, 0, 10)">
