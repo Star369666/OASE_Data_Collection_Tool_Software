@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QCI&AI資料模型蒐集</title>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <link rel="stylesheet" href="Data-Collection-tool_style.css">
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>QCI&AI資料模型蒐集</h1>
+  </header>
+
+  <!-- 第 0 步：全域基本設定 -->
+  <div class="card global-card">
+    <div style="flex: 1; min-width: 240px;">
+      <label for="userName">你的名字：</label>
+      <input type="text" id="userName" placeholder="請輸入您的名字">
+    </div>
+    <div style="flex: 2; min-width: 320px;">
+      <label>HEGAIImage 權重：</label>
+      <div class="slider-row" style="margin-top: 6px;">
+        <span class="weight-label">圖圖相符(<span id="percentV1">--%</span>)</span>
+        <input type="range" id="weightSlider" min="0" max="100" step="1" oninput="onWeightSliderChange(this.value)">
+        <span class="weight-label">圖文相符(<span id="percentV2">--%</span>)</span>
+      </div>
+    </div>
+  </div>
+
+  <input type="hidden" id="editingIndex" value="-1">
+
+  <div class="tabs"> 
+    <div class="tab-btn active" id="btn-tab1">Step 1: 語音生圖 與 Distance/Light 評估</div>
+    <div class="tab-btn" id="btn-tab2">Step 2: 圖生文 與 HEGAIText 評估</div>
+    <div class="tab-btn" id="btn-tab3">Step 3: 文生圖 與 HEGAIImage 評估</div>
+    <div class="tab-btn" id="btn-tab4">收集清單<span id="tabListCount" class="counter-badge">0</span></div>
+  </div>
+
+  <!-- Step 1 -->
+  <div id="tab-Step1" class="card tab-pane active">
+    <div class="card-title"><span class="badge">Step 1</span> 語音輸入生成圖片 與 Distance/Light 評估</div>
+    
+    <p class="intro-desc">
+      請前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a> 進行語音輸入並生成圖片。下載圖片後，將產生的文字、圖片與評估參數記錄於下方：
+    </p>
+    
+    <div class="form-group">
+      <label for="chinese">Chinese</label>
+      <input type="text" id="chinese" placeholder="媽媽說我美">
+    </div>
+    <div class="form-group">
+      <label for="engText">Translated English Text</label>
+      <input type="text" id="engText" placeholder="My mother says I'm beautiful.">
+    </div>
+<div class="form-group">
+  <input type="file" id="genImageInput" accept="image/*" onchange="handleImage(this, 'prev1', 'currImg1')">
+  
+  <!-- 把整塊容器先設為 display: none -->
+  <div id="prev1-container" style="display: none; text-align: center; margin-top: 8px;">
+    <img id="prev1" class="img-preview" alt="Generated Image" style="margin: 0 auto;">
+    <div class="compare-title">Generated Image</div>
+  </div>
+</div>
+    
+    <div class="form-group">
+      <label for="distance">Distance (拍攝距離評估，0-255 cm):</label>
+      <div class="slider-row">
+        <input type="range" id="distanceRange" min="0" max="255" value="127" oninput="syncInput('distanceRange', 'distance', false, 0, 255)">
+        <input type="number" id="distance" class="val-input" min="0" max="255" value="" placeholder="未定" oninput="syncInput('distance', 'distanceRange', false, 0, 255)">
+        <span class="unit-text">cm</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="light">Light (環境亮度評估，0-4000 lux):</label>
+      <div class="slider-row">
+        <input type="range" id="lightRange" min="0" max="4000" step="1" value="2000" oninput="syncInput('lightRange', 'light', false, 0, 4000)">
+        <input type="number" id="light" class="val-input" min="0" max="4000" value="" placeholder="未定" oninput="syncInput('light', 'lightRange', false, 0, 4000)">
+        <span class="unit-text">lux</span>
+      </div>
+    </div>
+    
+    <div id="Step1Msg" class="msg-box"></div>
+    <div class="actions">
+      <button class="btn-secondary" id="cancelStep1Btn" style="flex: 1; display: none;" onclick="cancelToTab4()">⬅️ 取消新增，返回清單</button>
+      <button class="btn-primary" style="flex: 2;" onclick="goToStep2()">下一步：前往 Step 2 ➡️</button>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div id="tab-Step2" class="card tab-pane">
+    <div class="card-title"><span class="badge">Step 2</span>圖片生成文字描述 與 HEGAIText 評估</div>
+    
+    <p class="intro-desc">
+      請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳"Generated Image"，使用模型 (如 Llama 3.2) 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估：
+    </p>
+
+    <div class="compare-panel">
+
+      <div style="text-align: center;">
+        <img id="Step2-ref-img1" class="img-preview" style="max-height: 150px; margin: 0 auto;" alt="圖1對照">
+      </div>
+      <div class="compare-title">Generated Image</div>
+    </div>
+
+    <div class="form-group">
+      <label for="gaiText">GAIText (English)</label>
+      <textarea id="gaiText" rows="2" placeholder="由Generated Image生成的描述文字"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label for="hegaiText">HEGAIText (評估GAIText與圖片的相符程度，0-10 分):</label>
+      <div class="slider-row">
+        <input type="range" id="hegaiTextRange" min="0" max="10" step="1" value="5" oninput="syncInput('hegaiTextRange', 'hegaiText', false, 0, 10)">
+        <input type="number" id="hegaiText" class="val-input" min="0" max="10" value="" placeholder="未定" oninput="syncInput('hegaiText', 'hegaiTextRange', false, 0, 10)">
+        <span class="unit-text">分</span>
+      </div>
+    </div>
+    
+    <div id="Step2Msg" class="msg-box"></div>
+    <div class="actions">
+      <button class="btn-secondary" style="flex: 1;" onclick="goBackTo('tab-Step1', 'btn-tab1')">⬅️ 上一步：回 Step 1</button>
+      <button class="btn-primary" style="flex: 2;" onclick="goToStep3()">下一步：前往 Step 3 ➡️</button>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div id="tab-Step3" class="card tab-pane">
+    <div class="card-title"><span class="badge">Step 3</span> 文字描述生成圖片 與 HEGAIImage 評估</div>
+
+    <p class="intro-desc">
+      請再次前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a>，輸入 GAIText (English) 來生成"GAIImage"，並進行 HEGAIImage 評估：
+    </p>
+    
+    <div class="form-group" style="background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
+    	<label for="gaiImageInput">GAIImage</label>
+      <input type="file" id="gaiImageInput" accept="image/*" onchange="handleImage(this, 'prev2', 'currImg2')">
+      
+    </div>
+
+    <div class="compare-panel">
+      <div class="compare-title">評估「Generated Image」與「GAIImage」的相符程度</div>
+      <div class="compare-row">
+        <div class="compare-item">
+          
+          <img id="Step3-ref-img1" class="img-preview" style="display:block;" alt="圖1">
+          <span>Generated Image</span>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="compare-item">
+
+          <img id="Step3-ref-img2-v1" class="img-preview" alt="圖2">
+ 			<span>GAIImage</span>
+        </div>
+      </div>
+      
+      <div class="form-group" style="margin-top: 12px;">
+        <label for="v1">HEGAIImage_v1 (評估「Generated Image」與「GAIImage」的相符程度，0-10 分):</label>
+        <div class="slider-row">
+          <input type="range" id="v1Range" min="0" max="10" step="1" value="5" oninput="syncInput('v1Range', 'v1', true, 0, 10)">
+          <input type="number" id="v1" class="val-input" min="0" max="10" value="" placeholder="未定" oninput="syncInput('v1', 'v1Range', true, 0, 10)">
+          <span class="unit-text">分</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-panel">
+      <div class="compare-title">評估「GAIImage」圖片與「GAIText (English)」的相符程度</div>
+<div class="compare-row">
+  <div class="compare-item">
+    <span>GAIText (English)</span>
+    <div id="Step3-ref-text" class="compare-text-box">（尚未輸入文字）</div>
+  </div>
+  <div class="vs-badge">VS</div>
+  <div class="compare-item">
+    
+    <img id="Step3-ref-img2-v2" class="img-preview" alt="圖2">
+    <span>GAIImage</span>
+  </div>
+</div>
+      <div class="form-group" style="margin-top: 12px;">
+        <label for="v2">HEGAIImage_v2 (評估「GAIImage」圖片與「GAIText (English)」的相符程度，0-10 分):</label>
+        <div class="slider-row">
+          <input type="range" id="v2Range" min="0" max="10" step="1" value="5" oninput="syncInput('v2Range', 'v2', true, 0, 10)">
+          <input type="number" id="v2" class="val-input" min="0" max="10" value="" placeholder="未定" oninput="syncInput('v2', 'v2Range', true, 0, 10)">
+          <span class="unit-text">分</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="calc-box">
+      <span>HEGAIImage</span>
+      <div class="score" id="hegaiFinal">--</div>
+    </div>
+    
+    <div id="actionMsg" class="msg-box"></div>
+    <div class="actions">
+      <button class="btn-secondary" style="flex: 1;" onclick="goBackTo('tab-Step2', 'btn-tab2')">⬅️ 上一步：回 Step 2</button>
+      <button class="btn-add" id="submitBtn" style="flex: 2;" onclick="saveRecord()">💾 儲存並前往收集清單</button>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div id="tab-list" class="card tab-pane">
+    <div class="card-title">
+      已收集清單
+      <span class="counter-badge" id="listCount">0 筆</span>
+    </div>
+
+    <!-- 小遊戲解鎖專區 
+    <div class="game-card">
+      <div>
+        <span style="font-weight: 700; color: #701a75;">🎮 小遊戲專區</span>
+        <span id="gameLockStatus" style="font-size: 0.8rem; color: #86198f; margin-left: 8px;"></span>
+      </div>
+      <button id="gameLinkBtn" class="btn-game" disabled onclick="openGame()">🔒 尚未解鎖</button>
+    </div>-->
+
+    <p class="intro-desc">
+      您可以在此確認、編輯或刪除所有已暫存的收集資料。完成收集後，請點擊下方按鈕將完整結果匯出為 Excel 檔案。
+    </p>
+
+    <div class="preview-table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>操作</th>
+            <th>No.</th>
+            <th>Generated Image</th>
+            <th>Chinese</th>
+            <th>Translated English Text</th>
+            <th>Distance</th>
+            <th>Light</th>
+            <th>GAIText (English)</th>
+            <th>HEGAIText</th>
+            <th>GAIImage</th>
+            <th>HEGAIImage_v1</th>
+            <th>HEGAIImage_v2</th>
+            <th>HEGAIImage</th>
+          </tr>
+        </thead>
+        <tbody id="recordTableBody">
+          <tr><td colspan="13" style="text-align:center; color:#94a3b8;">目前尚無已暫存的資料</td></tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div id="exportMsg" class="msg-box"></div>
+
+    <div class="list-section">
+      <div class="list-section-title">① 收集資料</div>
+      <div class="actions">
+        <button class="btn-add" style="flex: 1;" onclick="startNewRecord()">＋ 繼續收集下一筆資料</button>
+      </div>
+    </div>
+
+    <div class="list-section">
+      <div class="list-section-title">② 匯出收集範本</div>
+      <div class="actions">
+        <button class="btn-primary" id="exportBtn" style="flex: 1;" onclick="exportAllXLSX()">⬇️ 匯出資料模型範本(.xlsx)</button>
+      </div>
+    </div>
+
+    <div class="list-section">
+      <div class="list-section-title">③ 合併至 DataCollection(Stage 1).xlsx</div>
+      <div class="radio-row">
+        <label class="radio-opt"><input type="radio" name="mergeMode" value="append" checked> 附加在最底部</label>
+        <label class="radio-opt"><input type="radio" name="mergeMode" value="random"> 隨機排列</label>
+      </div>
+      <p class="hint-text">新增的資料列會以紅色字標示；GAIFit 沿用上一列公式。</p>
+      <div class="actions">
+        <button class="btn-primary" id="exportModelBtn" style="flex: 1;" onclick="exportModelXLSX()">📊 匯出資料模型(.xlsx)</button>
+      </div>
+      <input type="file" id="stage1FileInput" accept=".xlsx" style="display:none;">
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div>原作者 <a href="https://github.com/B0223048" target="_blank" rel="noopener">OASE Lab. 陳心瑋</a></div>
+    <br>
+    <div>改編作者 <a href="https://github.com/Star369666" target="_blank" rel="noopener">OASE Lab. 曾俊杰</a></div>
+  </footer>
+</div>
+
+<script src="Data-Collection-tool_script.js"></script>
+</body>
+</html>
