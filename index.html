@@ -27,6 +27,11 @@
         <input type="range" id="weightSlider" min="0" max="100" step="1" oninput="onWeightSliderChange(this.value)">
         <span class="weight-label">圖文相符(<span id="percentV2">--%</span>)</span>
       </div>
+      <div class="weight-input-row">
+        <label for="weightImgInput">圖圖相符權重：</label>
+        <input type="number" id="weightImgInput" class="val-input" min="0" max="100" step="1" placeholder="0-100" oninput="onWeightInputChange(this.value)">
+        <span class="unit-text">%</span>
+      </div>
     </div>
   </div>
 
@@ -56,6 +61,7 @@
       <input type="text" id="engText" placeholder="My mother says I'm beautiful.">
     </div>
 <div class="form-group">
+  <label for="genImageInput">上傳生成圖片</label>
   <input type="file" id="genImageInput" accept="image/*" onchange="handleImage(this, 'prev1', 'currImg1')">
   
   <!-- 把整塊容器先設為 display: none -->
@@ -269,7 +275,7 @@
         <label class="radio-opt"><input type="radio" name="mergeMode" value="append" checked> 附加在最底部</label>
         <label class="radio-opt"><input type="radio" name="mergeMode" value="random"> 隨機排列</label>
       </div>
-      <p class="hint-text">新增的資料列會以紅色字標示；GAIFit 沿用上一列公式。</p>
+      <p class="hint-text">新增的資料列會以紅色字標示；GAIFit 套用 C*0.7+D*0.3。</p>
       <div class="actions">
         <button class="btn-primary" id="exportModelBtn" style="flex: 1;" onclick="exportModelXLSX()">📊 匯出資料模型(.xlsx)</button>
       </div>
@@ -278,9 +284,16 @@
   </div>
 
   <footer class="site-footer">
-    <div>原作者 <a href="https://github.com/B0223048" target="_blank" rel="noopener">OASE Lab. 陳心瑋</a></div>
-    <br>
-    <div>改編作者 <a href="https://github.com/Star369666" target="_blank" rel="noopener">OASE Lab. 曾俊杰</a></div>
+    <div class="footer-col footer-left">
+      <div>原作者 <a href="https://github.com/B0223048" target="_blank" rel="noopener">OASE Lab. 陳心瑋</a></div>
+      <div>改編作者 <a href="https://github.com/Star369666" target="_blank" rel="noopener">OASE Lab. 曾俊杰</a></div>
+      <div>版權所有© 2026 OASE Lab.</div>
+    </div>
+    <div class="footer-col footer-right">
+      <div>Original Author <a href="https://github.com/B0223048" target="_blank" rel="noopener">OASE Lab. Hsin-Wei Chen</a></div>
+      <div>Adapted by <a href="https://github.com/Star369666" target="_blank" rel="noopener">OASE Lab. Chun-Chieh Tseng</a></div>
+      <div>Copyright © 2026 OASE Lab. All rights reserved.</div>
+    </div>
   </footer>
 </div>
 

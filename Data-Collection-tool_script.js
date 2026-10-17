@@ -31,7 +31,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ----------------------------------------------------
 // 權重連動核心（徹底避免 0 || 預設值的型態誤判陷阱）
 // ----------------------------------------------------
-function onWeightSliderChange(sliderVal) {
+function onWeightSliderChange(sliderVal, fromInput = false) {
   const val = Number(sliderVal);
   const textPercent = val;          // 0 ~ 100
   const imgPercent = 100 - val;     // 100 ~ 0
@@ -44,11 +44,32 @@ function onWeightSliderChange(sliderVal) {
   if (pV1Elem) pV1Elem.innerText = `${imgPercent}%`;
   if (pV2Elem) pV2Elem.innerText = `${textPercent}%`;
 
+  // 輸入框顯示「圖圖相符」權重（使用者正在輸入時不覆寫，避免游標跳動）
+  const imgInput = document.getElementById('weightImgInput');
+  if (imgInput && !fromInput) {
+    imgInput.value = imgPercent;
+    imgInput.style.borderColor = '';
+  }
+
   // 1. 即時計算 Step 3 預覽分數
   calcHEGAI();
 
   // 2. 即時連動更新清單頁面
   renderRecordTable();
+}
+
+// 權重輸入框：輸入「圖圖相符」權重 (0-100)，轉換為滑桿值（圖文相符 = 100 - 輸入值）
+function onWeightInputChange(inputVal) {
+  const input = document.getElementById('weightImgInput');
+  const num = Number(inputVal);
+  if (inputVal === '' || isNaN(num) || num < 0 || num > 100) {
+    input.style.borderColor = '#dc2626';
+    return;
+  }
+  input.style.borderColor = '';
+  const imgPercent = Math.round(num);
+  document.getElementById('weightSlider').value = 100 - imgPercent;
+  onWeightSliderChange(100 - imgPercent, true);
 }
 
 function calcHEGAI() {
@@ -744,8 +765,17 @@ async function exportModelXLSX() {
       const fitCell = row.getCell(5);
       let fit = item.fit;
       if (item.isNew) {
-        const prev = i > 0 ? items[i - 1].fit : null;
-        fit = (prev && prev.formula) ? prev : fallbackFormula;
+        // 新資料列：GAIFit = C*0.7 + D*0.3，並寫入計算結果（避免檢視器未重算而顯示空白）
+        const c = Number(item.vals[2]);
+        const d = Number(item.vals[3]);
+        fitCell.value = { formula: `C${rowNum}*0.7+D${rowNum}*0.3`, result: c * 0.7 + d * 0.3 };
+        item.fit = { formula: `C${rowNum}*0.7+D${rowNum}*0.3`, origRow: rowNum };
+        for (let col = 1; col <= 5; col++) {
+          const cell = row.getCell(col);
+          cell.style = { ...cell.style, font: { ...redFont } };
+        }
+        row.commit();
+        continue;
       }
       if (fit && fit.formula) {
         const f = shiftFormulaRow(fit.formula, fit.origRow, rowNum);
