@@ -131,8 +131,6 @@ function applyForm(s) {
   });
   currentImages = { ...s.images };
   document.getElementById('editingIndex').value = s.editingIndex;
-  document.getElementById('genImageInput').value = '';
-  document.getElementById('gaiImageInput').value = '';
   refreshPreviews();
   calcHEGAI();
   updateSubmitBtn();
@@ -490,7 +488,9 @@ function handleImage(input, prevId, storeKey) {
           base64: base64,
           ext: file.type.includes('png') ? 'png' : 'jpeg',
           width: img.naturalWidth,
-          height: img.naturalHeight
+          height: img.naturalHeight,
+          file: file,
+          name: file.name
         };
         
         if (storeKey === 'currImg1') {
@@ -508,10 +508,31 @@ function handleImage(input, prevId, storeKey) {
       img.src = base64;
     };
     reader.readAsDataURL(file);
+  } else if (currentImages[storeKey]) {
+    syncFileInput(input.id, currentImages[storeKey]);
   }
 }
 
-// 依 currentImages 與欄位內容重新整理各步驟的圖片/文字預覽
+// 同步 <input type="file"> 顯示的檔案名稱（切換軟硬體模式或編輯時保留已上傳圖片檔名，無圖時清空）
+function syncFileInput(inputId, imgObj) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (!imgObj) {
+    input.value = '';
+    return;
+  }
+  try {
+    const dt = new DataTransfer();
+    const ext = imgObj.ext || 'png';
+    const file = (imgObj.file instanceof File)
+      ? imgObj.file
+      : new File([''], imgObj.name || `uploaded.${ext}`, { type: `image/${ext}` });
+    dt.items.add(file);
+    input.files = dt.files;
+  } catch (e) { /* 舊版瀏覽器備援 */ }
+}
+
+// 依 currentImages 與欄位內容重新整理各步驟的圖片/文字預覽與檔案選擇器檔名
 function setImg(id, img) {
   const el = document.getElementById(id);
   if (img) {
@@ -532,6 +553,8 @@ function refreshPreviews() {
   setImg('Step3-ref-img1', i1);
   setImg('Step3-ref-img2-v1', i2);
   setImg('Step3-ref-img2-v2', i2);
+  syncFileInput('genImageInput', i1);
+  syncFileInput('gaiImageInput', i2);
   const t = document.getElementById('gaiText').value.trim();
   document.getElementById('Step3-ref-text').innerText = t || '（尚未輸入文字）';
 }
@@ -621,8 +644,6 @@ function editRecord(index, type) {
   setVal('v2Range', r.v2);
 
   currentImages = { currImg1: r.img1, currImg2: r.img2 };
-  document.getElementById('genImageInput').value = '';
-  document.getElementById('gaiImageInput').value = '';
   refreshPreviews();
   calcHEGAI();
 
@@ -732,10 +753,10 @@ const MEDIUM_BORDER = {
 };
 
 // 依據成品 DataCollectionTemplate(曾俊杰)-10192026-2.xlsx 校正之格子 EMU 尺寸與列高：
-// ExcelJS 預設字型為 Calibri，需設 ht=30.6 與 ht=191.25，在繁體中文 Excel 開啟才會顯示 30.6(51像素) 與 191.25
+// ExcelJS 預設字型為 Calibri (1 px = 0.75 pt)，第 1 列需設 ht=38.25 (51*0.75)，在 Excel (120 DPI, 1 px = 0.6 pt) 才會顯示 30.6(51像素)
 // 儲存格有效置中範圍為寬 1,985,010 EMUs、高 1,849,756 EMUs（924x541 圖片置中偏移 colOff=92505、rowOff=397930）
 const IMG_COL_WIDTH = 32.25;
-const HEADER_ROW_HEIGHT = 30.6;
+const HEADER_ROW_HEIGHT = 38.25;
 const DATA_ROW_HEIGHT = 191.25;
 const CELL_WIDTH_EMU = 1985010;
 const CELL_HEIGHT_EMU = 1849756;
