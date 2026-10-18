@@ -1,13 +1,29 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QCI&AI資料模型蒐集</title>
+  <script>
+    // 於畫面繪製前套用已記住的主題，避免閃爍
+    (function () {
+      try {
+        var t = localStorage.getItem('qci-theme');
+        if (t === 'light' || t === 'dark' || t === 'gray') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <link rel="stylesheet" href="Data-Collection-tool_style.css">
 </head>
-<body>
+<body data-mode="soft">
+
+<!-- 右上角：亮色 / 深色 / 灰色 -->
+<div class="theme-switch" role="radiogroup" aria-label="顯示模式">
+  <label class="theme-opt"><input type="radio" name="theme" value="light" onchange="applyTheme(this.value)" checked> ☀️ 亮色</label>
+  <label class="theme-opt"><input type="radio" name="theme" value="dark" onchange="applyTheme(this.value)"> 🌙 深色</label>
+  <label class="theme-opt"><input type="radio" name="theme" value="gray" onchange="applyTheme(this.value)"> ☁️ 灰色</label>
+</div>
 
 <div class="container">
   <header>
@@ -37,8 +53,14 @@
 
   <input type="hidden" id="editingIndex" value="-1">
 
+  <!-- 軟體 / 硬體 資料模型切換 -->
+  <div class="mode-switch" role="group" aria-label="資料模型類型">
+    <button type="button" class="mode-btn active" data-mode="soft" aria-pressed="true" onclick="setMode('soft')">QCI&amp;AI資料模型(軟體)</button>
+    <button type="button" class="mode-btn" data-mode="hard" aria-pressed="false" onclick="setMode('hard')">QCI&amp;AI資料模型(硬體)</button>
+  </div>
+
   <div class="tabs"> 
-    <div class="tab-btn active" id="btn-tab1">Step 1: 語音生圖 與 Distance/Light 評估</div>
+    <div class="tab-btn active" id="btn-tab1" data-soft="Step 1: 語音生圖 與 Distance/Light 評估" data-hard="Step 1: 上傳圖片 與 Distance/Light 評估">Step 1: 語音生圖 與 Distance/Light 評估</div>
     <div class="tab-btn" id="btn-tab2">Step 2: 圖生文 與 HEGAIText 評估</div>
     <div class="tab-btn" id="btn-tab3">Step 3: 文生圖 與 HEGAIImage 評估</div>
     <div class="tab-btn" id="btn-tab4">收集清單<span id="tabListCount" class="counter-badge">0</span></div>
@@ -46,30 +68,36 @@
 
   <!-- Step 1 -->
   <div id="tab-Step1" class="card tab-pane active">
-    <div class="card-title"><span class="badge">Step 1</span> KWS AI 語音輸入生成圖片 與 Distance/Light 評估</div>
+    <div class="card-title"><span class="badge">Step 1</span>
+      <span class="soft-only">KWS AI 語音輸入生成圖片 與 Distance/Light 評估</span>
+      <span class="hard-only">上傳拍攝圖片 與 Distance/Light 評估</span>
+    </div>
     
-    <p class="intro-desc">
+    <p class="intro-desc soft-only">
       請前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a> 進行語音輸入並生成圖片。下載圖片後，將產生的文字、圖片與評估參數記錄於下方
     </p>
+    <p class="intro-desc hard-only">
+      請上傳以硬體設備拍攝的圖片 (Shooting Image)，並記錄拍攝距離 (Distance) 與環境亮度 (Light)。下一步將前往 KWS AI 產生描述文字。
+    </p>
     
-    <div class="form-group">
+    <div class="form-group soft-only">
       <label for="chinese">Chinese</label>
       <input type="text" id="chinese" placeholder="媽媽說我美">
     </div>
-    <div class="form-group">
+    <div class="form-group soft-only">
       <label for="engText">Translated English Text</label>
       <input type="text" id="engText" placeholder="My mother says I'm beautiful.">
     </div>
-<div class="form-group">
-  <label for="genImageInput">上傳生成圖片</label>
-  <input type="file" id="genImageInput" accept="image/*" onchange="handleImage(this, 'prev1', 'currImg1')">
-  
-  <!-- 把整塊容器先設為 display: none -->
-  <div id="prev1-container" style="display: none; text-align: center; margin-top: 8px;">
-    <img id="prev1" class="img-preview" alt="Generated Image" style="margin: 0 auto;">
-    <div class="compare-title">Generated Image</div>
-  </div>
-</div>
+    <div class="form-group">
+      <label for="genImageInput" data-soft="上傳生成圖片" data-hard="上傳拍攝圖片 (Shooting Image)">上傳生成圖片</label>
+      <input type="file" id="genImageInput" accept="image/*" onchange="handleImage(this, 'prev1', 'currImg1')">
+      
+      <!-- 把整塊容器先設為 display: none -->
+      <div id="prev1-container" style="display: none; text-align: center; margin-top: 8px;">
+        <img id="prev1" class="img-preview" alt="Image" style="margin: 0 auto;">
+        <div class="compare-title" data-soft="Generated Image" data-hard="Shooting Image">Generated Image</div>
+      </div>
+    </div>
     
     <div class="form-group">
       <label for="distance">Distance (拍攝距離評估，0-255 cm):</label>
@@ -99,8 +127,11 @@
   <div id="tab-Step2" class="card tab-pane">
     <div class="card-title"><span class="badge">Step 2</span>圖片生成文字描述 與 HEGAIText 評估</div>
     
-    <p class="intro-desc">
+    <p class="intro-desc soft-only">
       請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳 Generated Image，使用模型 Llama 3.2/Gemma 4 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估
+    </p>
+    <p class="intro-desc hard-only">
+      請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳 Shooting Image，使用模型 Llama 3.2/Gemma 4 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估
     </p>
 
     <div class="compare-panel">
@@ -108,12 +139,17 @@
       <div style="text-align: center;">
         <img id="Step2-ref-img1" class="img-preview" style="max-height: 150px; margin: 0 auto;" alt="圖1對照">
       </div>
-      <div class="compare-title">Generated Image</div>
+      <div class="compare-title" data-soft="Generated Image" data-hard="Shooting Image">Generated Image</div>
+    </div>
+
+    <div class="form-group hard-only">
+      <label for="gaiTextCn">GAIText (Chinese)</label>
+      <textarea id="gaiTextCn" rows="2" placeholder="由 Shooting Image 生成的中文描述文字（選填）"></textarea>
     </div>
 
     <div class="form-group">
-      <label for="gaiText">GAIText (English or Chinese)</label>
-      <textarea id="gaiText" rows="2" placeholder="由 Generated Image 生成的描述文字"></textarea>
+      <label for="gaiText" data-soft="GAIText (English or Chinese)" data-hard="GAIText (English)">GAIText (English or Chinese)</label>
+      <textarea id="gaiText" rows="2" placeholder="由 Generated Image 生成的描述文字" data-ph-soft="由 Generated Image 生成的描述文字" data-ph-hard="由 Shooting Image 生成的英文描述文字"></textarea>
     </div>
     
     <div class="form-group">
@@ -140,30 +176,30 @@
       請再次前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a>，輸入 GAIText (English) 來生成 GAIImage，並進行 HEGAIImage 評估：
     </p>
     
-    <div class="form-group" style="background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
-    	<label for="gaiImageInput">GAIImage</label>
+    <div class="form-group gaiimage-box">
+      <label for="gaiImageInput">GAIImage</label>
       <input type="file" id="gaiImageInput" accept="image/*" onchange="handleImage(this, 'prev2', 'currImg2')">
       
     </div>
 
     <div class="compare-panel">
-      <div class="compare-title">評估 Generated Image 與 GAIImage 的相符程度</div>
+      <div class="compare-title" data-soft="評估 Generated Image 與 GAIImage 的相符程度" data-hard="評估 Shooting Image 與 GAIImage 的相符程度">評估 Generated Image 與 GAIImage 的相符程度</div>
       <div class="compare-row">
         <div class="compare-item">
           
-          <img id="Step3-ref-img1" class="img-preview" style="display:block;" alt="圖1">
-          <span>Generated Image</span>
+          <img id="Step3-ref-img1" class="img-preview" alt="圖1">
+          <span data-soft="Generated Image" data-hard="Shooting Image">Generated Image</span>
         </div>
         <div class="vs-badge">VS</div>
         <div class="compare-item">
 
           <img id="Step3-ref-img2-v1" class="img-preview" alt="圖2">
- 			<span>GAIImage</span>
+          <span>GAIImage</span>
         </div>
       </div>
       
       <div class="form-group" style="margin-top: 12px;">
-        <label for="v1">HEGAIImage_v1 (評估 Generated Image 與 GAIImage 的相符程度，0-10 分):</label>
+        <label for="v1" data-soft="HEGAIImage_v1 (評估 Generated Image 與 GAIImage 的相符程度，0-10 分):" data-hard="HEGAIImage_v1 (評估 Shooting Image 與 GAIImage 的相符程度，0-10 分):">HEGAIImage_v1 (評估 Generated Image 與 GAIImage 的相符程度，0-10 分):</label>
         <div class="slider-row">
           <input type="range" id="v1Range" min="0" max="10" step="1" value="5" oninput="syncInput('v1Range', 'v1', true, 0, 10)">
           <input type="number" id="v1" class="val-input" min="0" max="10" value="" placeholder="未定" oninput="syncInput('v1', 'v1Range', true, 0, 10)">
@@ -174,18 +210,18 @@
 
     <div class="compare-panel">
       <div class="compare-title">評估 GAIImage 圖片與 GAIText (English) 的相符程度</div>
-<div class="compare-row">
-  <div class="compare-item">
-    <span>GAIText (English)</span>
-    <div id="Step3-ref-text" class="compare-text-box">（尚未輸入文字）</div>
-  </div>
-  <div class="vs-badge">VS</div>
-  <div class="compare-item">
-    
-    <img id="Step3-ref-img2-v2" class="img-preview" alt="圖2">
-    <span>GAIImage</span>
-  </div>
-</div>
+      <div class="compare-row">
+        <div class="compare-item">
+          <span>GAIText (English)</span>
+          <div id="Step3-ref-text" class="compare-text-box">（尚未輸入文字）</div>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="compare-item">
+          
+          <img id="Step3-ref-img2-v2" class="img-preview" alt="圖2">
+          <span>GAIImage</span>
+        </div>
+      </div>
       <div class="form-group" style="margin-top: 12px;">
         <label for="v2">HEGAIImage_v2 (評估 GAIImage 圖片與 GAIText (English) 的相符程度，0-10 分):</label>
         <div class="slider-row">
@@ -215,19 +251,21 @@
       <span class="counter-badge" id="listCount">0 筆</span>
     </div>
 
-    <!-- 小遊戲解鎖專區 
-    <div class="game-card">
-      <div>
-        <span style="font-weight: 700; color: #701a75;">🎮 小遊戲專區</span>
-        <span id="gameLockStatus" style="font-size: 0.8rem; color: #86198f; margin-left: 8px;"></span>
-      </div>
-      <button id="gameLinkBtn" class="btn-game" disabled onclick="openGame()">🔒 尚未解鎖</button>
-    </div>-->
+    <!-- 統計欄位 -->
+    <div class="stats-bar" id="recordStats">
+      <span>軟體資料模型：<b id="statSoft">0</b> 筆</span>
+      <span class="stats-sep">｜</span>
+      <span>硬體資料模型：<b id="statHard">0</b> 筆</span>
+      <span class="stats-sep">｜</span>
+      <span>合計：<b id="statTotal">0</b> 筆</span>
+    </div>
 
     <p class="intro-desc">
       您可以在此確認、編輯或刪除所有已暫存的收集資料。完成收集後，請點擊下方按鈕將完整結果匯出為 Excel 檔案。
     </p>
 
+    <!-- 軟體資料模型清單 -->
+    <div class="table-title">QCI&amp;AI資料模型(軟體) <span class="counter-badge" id="softCount">0 筆</span></div>
     <div class="preview-table-container">
       <table>
         <thead>
@@ -248,7 +286,33 @@
           </tr>
         </thead>
         <tbody id="recordTableBody">
-          <tr><td colspan="13" style="text-align:center; color:#94a3b8;">目前尚無已暫存的資料</td></tr>
+          <tr><td colspan="13" class="empty-row">目前尚無已暫存的資料</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 硬體資料模型清單 -->
+    <div class="table-title">QCI&amp;AI資料模型(硬體) <span class="counter-badge" id="hardCount">0 筆</span></div>
+    <div class="preview-table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>操作</th>
+            <th>No.</th>
+            <th>Shooting Image</th>
+            <th>Distance</th>
+            <th>Light</th>
+            <th>GAIText (Chinese)</th>
+            <th>GAIText (English)</th>
+            <th>HEGAIText</th>
+            <th>GAIImage</th>
+            <th>HEGAIImage_v1</th>
+            <th>HEGAIImage_v2</th>
+            <th>HEGAIImage</th>
+          </tr>
+        </thead>
+        <tbody id="hwRecordTableBody">
+          <tr><td colspan="12" class="empty-row">目前尚無已暫存的資料</td></tr>
         </tbody>
       </table>
     </div>
@@ -258,12 +322,14 @@
     <div class="list-section">
       <div class="list-section-title">① 收集資料</div>
       <div class="actions">
-        <button class="btn-add" style="flex: 1;" onclick="startNewRecord()">＋ 繼續收集下一筆資料</button>
+        <button class="btn-add" style="flex: 1;" onclick="startNewRecord('soft')">＋ 繼續收集軟體資料</button>
+        <button class="btn-add" style="flex: 1;" onclick="startNewRecord('hard')">＋ 繼續收集硬體資料</button>
       </div>
     </div>
 
     <div class="list-section">
       <div class="list-section-title">② 匯出收集範本</div>
+      <p class="hint-text">軟體與硬體資料會分別放在「軟體」「硬體」兩個工作表。</p>
       <div class="actions">
         <button class="btn-primary" id="exportBtn" style="flex: 1;" onclick="exportAllXLSX()">⬇️ 匯出資料模型範本(.xlsx)</button>
       </div>
@@ -276,7 +342,7 @@
         <label class="radio-opt"><input type="radio" name="mergeMode" value="prepend"> 依序附加在頂端</label>
         <label class="radio-opt"><input type="radio" name="mergeMode" value="random"> 隨機排列</label>
       </div>
-      <p class="hint-text">新增的資料列會以紅色字標示，GAIFit 套用 HEGAIText*0.7 + HEGAIImage*0.3。</p>
+      <p class="hint-text">軟體與硬體資料都會合併（先軟體、後硬體）；新增的資料列會以紅色字標示，GAIFit 套用 HEGAIText*0.7 + HEGAIImage*0.3。</p>
       <div class="actions">
         <button class="btn-primary" id="exportModelBtn" style="flex: 1;" onclick="exportModelXLSX()">📊 匯出資料模型(.xlsx)</button>
       </div>
