@@ -329,7 +329,12 @@
 
     <div class="list-section">
       <div class="list-section-title">② 匯出收集範本</div>
-      <p class="hint-text">軟體與硬體資料會分別放在「軟體」「硬體」兩個工作表。</p>
+      <div class="radio-row">
+        <label class="radio-opt"><input type="radio" name="templateMode" value="both" checked> 匯出軟體和硬體資料模型範本</label>
+        <label class="radio-opt"><input type="radio" name="templateMode" value="soft"> 匯出軟體資料模型範本</label>
+        <label class="radio-opt"><input type="radio" name="templateMode" value="hard"> 匯出硬體資料模型範本</label>
+      </div>
+      <p class="hint-text">依上方選擇匯出對應的資料模型範本工作表。</p>
       <div class="actions">
         <button class="btn-primary" id="exportBtn" style="flex: 1;" onclick="exportAllXLSX()">⬇️ 匯出資料模型範本(.xlsx)</button>
       </div>

@@ -947,27 +947,55 @@ function buildHardSheet(workbook, sheet, list) {
 async function exportAllXLSX() {
   if (!validateStep0('exportMsg')) return;
 
-  const total = records.length + hwRecords.length;
-  if (total === 0) {
-    showNotice('exportMsg', '⚠️ 清單中尚無任何資料可以匯出！', true);
-    return;
+  const tplModeElem = document.querySelector('input[name="templateMode"]:checked');
+  const tplMode = tplModeElem ? tplModeElem.value : 'both';
+
+  let countToExport = 0;
+  if (tplMode === 'soft') {
+    countToExport = records.length;
+    if (countToExport === 0) {
+      showNotice('exportMsg', '⚠️ 軟體資料模型清單中尚無任何資料可以匯出！', true);
+      return;
+    }
+  } else if (tplMode === 'hard') {
+    countToExport = hwRecords.length;
+    if (countToExport === 0) {
+      showNotice('exportMsg', '⚠️ 硬體資料模型清單中尚無任何資料可以匯出！', true);
+      return;
+    }
+  } else {
+    countToExport = records.length + hwRecords.length;
+    if (countToExport === 0) {
+      showNotice('exportMsg', '⚠️ 清單中尚無任何資料可以匯出！', true);
+      return;
+    }
   }
 
   const btn = document.getElementById('exportBtn');
   btn.disabled = true;
-  btn.innerText = `正在產生 ${total} 筆資料之 Excel...`;
+  btn.innerText = `正在產生 ${countToExport} 筆資料之 Excel...`;
 
   try {
     const workbook = new ExcelJS.Workbook();
-    buildSoftSheet(workbook, workbook.addWorksheet('軟體'), records);
-    buildHardSheet(workbook, workbook.addWorksheet('硬體'), hwRecords);
+    if (tplMode === 'both' || tplMode === 'soft') {
+      buildSoftSheet(workbook, workbook.addWorksheet('軟體'), records);
+    }
+    if (tplMode === 'both' || tplMode === 'hard') {
+      buildHardSheet(workbook, workbook.addWorksheet('硬體'), hwRecords);
+    }
 
     const buffer = await workbook.xlsx.writeBuffer();
 
     exportCount++;
     const userName = document.getElementById('userName').value.trim() || '未命名';
     downloadBuffer(buffer, `DataCollectionTemplate(${userName})-${getTodayMMDDYYYY()}-${exportCount}.xlsx`);
-    showNotice('exportMsg', `🎉 Excel 檔案已成功下載！（軟體 ${records.length} 筆、硬體 ${hwRecords.length} 筆）`);
+
+    const summary = tplMode === 'soft'
+      ? `軟體 ${records.length} 筆`
+      : tplMode === 'hard'
+        ? `硬體 ${hwRecords.length} 筆`
+        : `軟體 ${records.length} 筆、硬體 ${hwRecords.length} 筆`;
+    showNotice('exportMsg', `🎉 Excel 檔案已成功下載！（${summary}）`);
   } catch (err) {
     showNotice('exportMsg', '匯出失敗：' + err.message, true);
   } finally {
