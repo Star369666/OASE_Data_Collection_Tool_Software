@@ -732,11 +732,11 @@ const MEDIUM_BORDER = {
 };
 
 // 依據成品 DataCollectionTemplate(曾俊杰)-10192026-2.xlsx 校正之格子 EMU 尺寸與列高：
-// 欄寬 32.25 對應儲存格寬度 1,985,010 EMUs；資料列高 153 對應儲存格高度 1,849,756 EMUs
-// 當圖片較長邊 = 5 cm (1,800,000 EMUs) 時，橫向圖片 (924x541) 置中偏移恰為 colOff=92505、rowOff=397930
+// ExcelJS 預設字型為 Calibri，需設 ht=30.6 與 ht=191.25，在繁體中文 Excel 開啟才會顯示 30.6(51像素) 與 191.25
+// 儲存格有效置中範圍為寬 1,985,010 EMUs、高 1,849,756 EMUs（924x541 圖片置中偏移 colOff=92505、rowOff=397930）
 const IMG_COL_WIDTH = 32.25;
-const HEADER_ROW_HEIGHT = 24.45;
-const DATA_ROW_HEIGHT = 153;
+const HEADER_ROW_HEIGHT = 30.6;
+const DATA_ROW_HEIGHT = 191.25;
 const CELL_WIDTH_EMU = 1985010;
 const CELL_HEIGHT_EMU = 1849756;
 
