@@ -17,8 +17,13 @@ let state = {
 let records = [];     // 軟體資料模型
 let hwRecords = [];   // 硬體資料模型
 let currentMode = 'soft'; // 'soft' | 'hard'
+let currentLang = 'zh';   // 'zh' | 'en'
 let currentImages = { currImg1: null, currImg2: null };
 let exportCount = 0;
+
+function tr(zhText, enText) {
+  return currentLang === 'en' ? enText : zhText;
+}
 
 // 軟體 / 硬體 各自獨立的暫存表單（切換模式時互不覆蓋）
 const formStash = { soft: null, hard: null };
@@ -41,6 +46,7 @@ function escapeHtml(s) {
 // 頁面載入完成時，以 CONFIG 為準初始化畫面
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  initLang();
   applyModeUI();
 
   const initialSliderVal = Math.round(CONFIG.defaultTextWeight * 100);
@@ -72,9 +78,47 @@ function initTheme() {
 }
 
 // ----------------------------------------------------
+// 語言切換：中文 (zh) / 英文 (en)（排除底部 footer）
+// ----------------------------------------------------
+const LANG_KEY = 'qci-lang';
+
+function applyLang(lang) {
+  currentLang = (lang === 'en') ? 'en' : 'zh';
+  document.documentElement.setAttribute('lang', currentLang === 'en' ? 'en' : 'zh-TW');
+  document.title = tr('QCI&AI資料模型蒐集', 'QCI&AI Data Model Collection');
+  try { localStorage.setItem(LANG_KEY, currentLang); } catch (e) { /* ignore */ }
+
+  const radio = document.querySelector(`input[name="lang"][value="${currentLang}"]`);
+  if (radio) radio.checked = true;
+
+  document.querySelectorAll('[data-zh][data-en]').forEach(el => {
+    el.textContent = currentLang === 'en' ? el.dataset.en : el.dataset.zh;
+  });
+  document.querySelectorAll('[data-html-zh][data-html-en]').forEach(el => {
+    el.innerHTML = currentLang === 'en' ? el.dataset.htmlEn : el.dataset.htmlZh;
+  });
+  document.querySelectorAll('[data-ph-zh][data-ph-en]').forEach(el => {
+    el.placeholder = currentLang === 'en' ? el.dataset.phEn : el.dataset.phZh;
+  });
+
+  applyModeUI();
+  refreshPreviews();
+  updateSubmitBtn();
+  renderRecordTable();
+}
+
+function initLang() {
+  let lang = 'zh';
+  try { lang = localStorage.getItem(LANG_KEY) || 'zh'; } catch (e) { /* ignore */ }
+  applyLang(lang);
+}
+
+// ----------------------------------------------------
 // 軟體 / 硬體 模式切換
 // ----------------------------------------------------
 function applyModeUI() {
+  const isHard = currentMode === 'hard';
+  const isEn = currentLang === 'en';
   document.body.setAttribute('data-mode', currentMode);
   document.querySelectorAll('.mode-btn').forEach(b => {
     const on = b.dataset.mode === currentMode;
@@ -82,10 +126,16 @@ function applyModeUI() {
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
   document.querySelectorAll('[data-soft][data-hard]').forEach(el => {
-    el.textContent = el.dataset[currentMode === 'hard' ? 'hard' : 'soft'];
+    const key = isHard
+      ? (isEn && el.dataset.hardEn ? 'hardEn' : 'hard')
+      : (isEn && el.dataset.softEn ? 'softEn' : 'soft');
+    el.textContent = el.dataset[key];
   });
   document.querySelectorAll('[data-ph-soft][data-ph-hard]').forEach(el => {
-    el.placeholder = currentMode === 'hard' ? el.dataset.phHard : el.dataset.phSoft;
+    const key = isHard
+      ? (isEn && el.dataset.phHardEn ? 'phHardEn' : 'phHard')
+      : (isEn && el.dataset.phSoftEn ? 'phSoftEn' : 'phSoft');
+    el.placeholder = el.dataset[key];
   });
 }
 
@@ -211,14 +261,14 @@ function calcScore(r) {
 function thumbCell(img) {
   return img
     ? `<img src="${img.base64}" style="max-height:45px; max-width:60px; object-fit:contain;">`
-    : '[無圖]';
+    : tr('[無圖]', '[No Image]');
 }
 
 function actionCell(i, type) {
   return `
         <td>
-          <button class="btn-edit" onclick="editRecord(${i}, '${type}')">編輯</button>
-          <button class="btn-danger" onclick="deleteRecord(${i}, '${type}')">刪除</button>
+          <button class="btn-edit" onclick="editRecord(${i}, '${type}')">${tr('編輯', 'Edit')}</button>
+          <button class="btn-danger" onclick="deleteRecord(${i}, '${type}')">${tr('刪除', 'Delete')}</button>
         </td>`;
 }
 
@@ -240,9 +290,9 @@ function renderRecordTable() {
   document.getElementById('statSoft').innerText = s;
   document.getElementById('statHard').innerText = h;
   document.getElementById('statTotal').innerText = total;
-  document.getElementById('softCount').innerText = `${s} 筆`;
-  document.getElementById('hardCount').innerText = `${h} 筆`;
-  document.getElementById('listCount').innerText = `${total} 筆`;
+  document.getElementById('softCount').innerText = tr(`${s} 筆`, `${s} records`);
+  document.getElementById('hardCount').innerText = tr(`${h} 筆`, `${h} records`);
+  document.getElementById('listCount').innerText = tr(`${total} 筆`, `${total} records`);
   document.getElementById('tabListCount').innerText = total;
 
   // 小遊戲按鈕判定 (達門檻解鎖)
@@ -251,20 +301,23 @@ function renderRecordTable() {
   if (gameBtn && gameStatus) {
     if (total >= CONFIG.minRecordsForGame) {
       gameBtn.disabled = false;
-      gameBtn.innerText = '🎮 前往小遊戲';
-      gameStatus.innerText = '（已解鎖！）';
+      gameBtn.innerText = tr('🎮 前往小遊戲', '🎮 Play Mini Game');
+      gameStatus.innerText = tr('（已解鎖！）', '(Unlocked!)');
       gameStatus.style.color = '#15803d';
     } else {
+      const rem = CONFIG.minRecordsForGame - total;
       gameBtn.disabled = true;
-      gameBtn.innerText = '🔒 尚未解鎖';
-      gameStatus.innerText = `（再收集 ${CONFIG.minRecordsForGame - total} 筆即可解鎖）`;
+      gameBtn.innerText = tr('🔒 尚未解鎖', '🔒 Locked');
+      gameStatus.innerText = tr(`（再收集 ${rem} 筆即可解鎖）`, `(Collect ${rem} more to unlock)`);
       gameStatus.style.color = '#86198f';
     }
   }
 
+  const emptyMsg = tr('目前尚無已暫存的資料', 'No records saved yet');
+
   // 軟體
   softBody.innerHTML = s === 0
-    ? '<tr><td colspan="13" class="empty-row">目前尚無已暫存的資料</td></tr>'
+    ? `<tr><td colspan="13" class="empty-row">${emptyMsg}</td></tr>`
     : records.map((r, i) => {
       // 依當前最新權重動態計算分數
       const currentScore = calcScore(r);
@@ -288,7 +341,7 @@ function renderRecordTable() {
 
   // 硬體
   hardBody.innerHTML = h === 0
-    ? '<tr><td colspan="12" class="empty-row">目前尚無已暫存的資料</td></tr>'
+    ? `<tr><td colspan="12" class="empty-row">${emptyMsg}</td></tr>`
     : hwRecords.map((r, i) => {
       const currentScore = calcScore(r);
       r.finalScore = currentScore;
@@ -337,7 +390,7 @@ function isValidNumber(valStr, min, max) {
 function validateStep0(msgElemId) {
   const userName = document.getElementById('userName').value.trim();
   if (!userName) {
-    showNotice(msgElemId, '⚠️ 請先在最上方填寫「你的名字」！', true);
+    showNotice(msgElemId, tr('⚠️ 請先在最上方填寫「你的名字」！', '⚠️ Please enter "Your Name" at the top first!'), true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return false;
   }
@@ -382,7 +435,7 @@ function clearAllTempForms() {
   formStash.hard = null;
   lastStep.soft = ['tab-Step1', 'btn-tab1'];
   lastStep.hard = ['tab-Step1', 'btn-tab1'];
-  showNotice('exportMsg', '✅ 已清空軟體和硬體暫存表格！');
+  showNotice('exportMsg', tr('✅ 已清空軟體和硬體暫存表格！', '✅ Software and hardware temporary forms have been cleared!'));
 }
 
 function cancelToTab4() {
@@ -398,8 +451,11 @@ function updateCancelBtnVisibility() {
 
 function updateSubmitBtn() {
   const idx = parseInt(document.getElementById('editingIndex').value, 10);
-  document.getElementById('submitBtn').innerText =
-    idx === -1 ? '💾 儲存並前往收集清單' : `💾 儲存修改 (第 ${idx + 1} 筆)`;
+  const btn = document.getElementById('submitBtn');
+  if (!btn) return;
+  btn.innerText = idx === -1
+    ? tr('💾 儲存並前往收集清單', '💾 Save & Go to Collection List')
+    : tr(`💾 儲存修改 (第 ${idx + 1} 筆)`, `💾 Save Changes (Record #${idx + 1})`);
 }
 
 function getEditingRecord() {
@@ -419,17 +475,17 @@ function goToStep2() {
   const lightVal = document.getElementById('light').value;
 
   if (!isHard && (!chinese || !engText)) {
-    showNotice('Step1Msg', '⚠️ 請務必填寫「中文語句」與「翻譯英文句子」！', true);
+    showNotice('Step1Msg', tr('⚠️ 請務必填寫「中文語句」與「翻譯英文句子」！', '⚠️ Please fill in both "Chinese" and "Translated English Text"!'), true);
     return;
   }
   if (!currentImg1) {
     showNotice('Step1Msg', isHard
-      ? '⚠️ 請先上傳拍攝圖片 (Shooting Image)！'
-      : '⚠️ 請先上傳第1張生成圖片 (Generated Image)！', true);
+      ? tr('⚠️ 請先上傳拍攝圖片 (Shooting Image)！', '⚠️ Please upload the Shooting Image first!')
+      : tr('⚠️ 請先上傳第1張生成圖片 (Generated Image)！', '⚠️ Please upload the first Generated Image first!'), true);
     return;
   }
   if (!isValidNumber(distanceVal, 0, 255) || !isValidNumber(lightVal, 0, 4000)) {
-    showNotice('Step1Msg', '⚠️ 請確實填寫或滑動設定「Distance」與「Light」數值！', true);
+    showNotice('Step1Msg', tr('⚠️ 請確實填寫或滑動設定「Distance」與「Light」數值！', '⚠️ Please enter or slide to set both "Distance" and "Light" values!'), true);
     return;
   }
 
@@ -448,12 +504,12 @@ function goToStep3() {
 
   if (!gaiText) {
     showNotice('Step2Msg', currentMode === 'hard'
-      ? '⚠️ 請輸入 GAIText (English) 描述文字！'
-      : '⚠️ 請輸入 GAIText (反向生成的英文描述)！', true);
+      ? tr('⚠️ 請輸入 GAIText (English) 描述文字！', '⚠️ Please enter the GAIText (English) description!')
+      : tr('⚠️ 請輸入 GAIText (反向生成的英文描述)！', '⚠️ Please enter the GAIText description!'), true);
     return;
   }
   if (!isValidNumber(hegaiTextVal, 0, 10)) {
-    showNotice('Step2Msg', '⚠️ 請設定 HEGAIText 評分！', true);
+    showNotice('Step2Msg', tr('⚠️ 請設定 HEGAIText 評分！', '⚠️ Please set the HEGAIText score!'), true);
     return;
   }
 
@@ -556,7 +612,7 @@ function refreshPreviews() {
   syncFileInput('genImageInput', i1);
   syncFileInput('gaiImageInput', i2);
   const t = document.getElementById('gaiText').value.trim();
-  document.getElementById('Step3-ref-text').innerText = t || '（尚未輸入文字）';
+  document.getElementById('Step3-ref-text').innerText = t || tr('（尚未輸入文字）', '(No text entered yet)');
 }
 
 function calculateFitDimensions(origWidth, origHeight, maxWidth, maxHeight) {
@@ -576,14 +632,14 @@ function saveRecord() {
   const currentImg2 = currentImages.currImg2 || (editing ? editing.img2 : null);
 
   if (!currentImg1 || !currentImg2) {
-    showNotice('actionMsg', '⚠️ 請完成第2張圖片的上傳後再新增！', true);
+    showNotice('actionMsg', tr('⚠️ 請完成第2張圖片的上傳後再新增！', '⚠️ Please upload the second image (GAIImage) before saving!'), true);
     return;
   }
   
   const v1Val = document.getElementById('v1').value;
   const v2Val = document.getElementById('v2').value;
   if (!isValidNumber(v1Val, 0, 10) || !isValidNumber(v2Val, 0, 10)) {
-    showNotice('actionMsg', '⚠️ 請設定 HEGAIImage_v1 與 v2 評分！', true);
+    showNotice('actionMsg', tr('⚠️ 請設定 HEGAIImage_v1 與 v2 評分！', '⚠️ Please set both HEGAIImage_v1 and HEGAIImage_v2 scores!'), true);
     return;
   }
 
@@ -605,15 +661,16 @@ function saveRecord() {
     record.gaiTextCn = document.getElementById('gaiTextCn').value.trim();
   }
 
-  const label = mode === 'hard' ? '硬體' : '軟體';
+  const labelZh = mode === 'hard' ? '硬體' : '軟體';
+  const labelEn = mode === 'hard' ? 'Hardware' : 'Software';
   if (editingIdx === -1) {
     list.push(record);
-    showNotice('exportMsg', `✅ 已成功新增一筆${label}資料！`, false);
+    showNotice('exportMsg', tr(`✅ 已成功新增一筆${labelZh}資料！`, `✅ Successfully added 1 ${labelEn} record!`), false);
   } else {
     list[editingIdx] = record;
     document.getElementById('editingIndex').value = '-1';
     updateSubmitBtn();
-    showNotice('exportMsg', `✅ ${label}第 ${editingIdx + 1} 筆資料已更新！`, false);
+    showNotice('exportMsg', tr(`✅ ${labelZh}第 ${editingIdx + 1} 筆資料已更新！`, `✅ ${labelEn} record #${editingIdx + 1} has been updated!`), false);
   }
 
   renderRecordTable();
@@ -711,7 +768,7 @@ function deleteRecord(index, type) {
   }
 
   renderRecordTable();
-  showNotice('exportMsg', '已刪除該筆資料');
+  showNotice('exportMsg', tr('已刪除該筆資料', 'Record deleted'));
   updateCancelBtnVisibility();
 }
 
@@ -985,26 +1042,26 @@ async function exportAllXLSX() {
   if (tplMode === 'soft') {
     countToExport = records.length;
     if (countToExport === 0) {
-      showNotice('exportMsg', '⚠️ 軟體資料模型清單中尚無任何資料可以匯出！', true);
+      showNotice('exportMsg', tr('⚠️ 軟體資料模型清單中尚無任何資料可以匯出！', '⚠️ No records in the Software Data Model list to export!'), true);
       return;
     }
   } else if (tplMode === 'hard') {
     countToExport = hwRecords.length;
     if (countToExport === 0) {
-      showNotice('exportMsg', '⚠️ 硬體資料模型清單中尚無任何資料可以匯出！', true);
+      showNotice('exportMsg', tr('⚠️ 硬體資料模型清單中尚無任何資料可以匯出！', '⚠️ No records in the Hardware Data Model list to export!'), true);
       return;
     }
   } else {
     countToExport = records.length + hwRecords.length;
     if (countToExport === 0) {
-      showNotice('exportMsg', '⚠️ 清單中尚無任何資料可以匯出！', true);
+      showNotice('exportMsg', tr('⚠️ 清單中尚無任何資料可以匯出！', '⚠️ No records in the list to export!'), true);
       return;
     }
   }
 
   const btn = document.getElementById('exportBtn');
   btn.disabled = true;
-  btn.innerText = `正在產生 ${countToExport} 筆資料之 Excel...`;
+  btn.innerText = tr(`正在產生 ${countToExport} 筆資料之 Excel...`, `Generating Excel for ${countToExport} record(s)...`);
 
   try {
     const workbook = new ExcelJS.Workbook();
@@ -1020,20 +1077,20 @@ async function exportAllXLSX() {
     const buffer = await workbook.xlsx.writeBuffer();
 
     exportCount++;
-    const userName = document.getElementById('userName').value.trim() || '未命名';
+    const userName = document.getElementById('userName').value.trim() || tr('未命名', 'Unnamed');
     downloadBuffer(buffer, `DataCollectionTemplate(${userName})-${getTodayMMDDYYYY()}-${exportCount}.xlsx`);
 
     const summary = tplMode === 'soft'
-      ? `軟體 ${records.length} 筆`
+      ? tr(`軟體 ${records.length} 筆`, `Software: ${records.length}`)
       : tplMode === 'hard'
-        ? `硬體 ${hwRecords.length} 筆`
-        : `軟體 ${records.length} 筆、硬體 ${hwRecords.length} 筆`;
-    showNotice('exportMsg', `🎉 Excel 檔案已成功下載！（${summary}）`);
+        ? tr(`硬體 ${hwRecords.length} 筆`, `Hardware: ${hwRecords.length}`)
+        : tr(`軟體 ${records.length} 筆、硬體 ${hwRecords.length} 筆`, `Software: ${records.length}, Hardware: ${hwRecords.length}`);
+    showNotice('exportMsg', tr(`🎉 Excel 檔案已成功下載！（${summary}）`, `🎉 Excel file downloaded! (${summary})`));
   } catch (err) {
-    showNotice('exportMsg', '匯出失敗：' + err.message, true);
+    showNotice('exportMsg', tr('匯出失敗：', 'Export failed: ') + err.message, true);
   } finally {
     btn.disabled = false;
-    btn.innerText = '⬇️ 匯出資料模型範本(.xlsx)';
+    btn.innerText = tr('⬇️ 匯出資料模型範本(.xlsx)', '⬇️ Export Data Model Template (.xlsx)');
   }
 }
 
@@ -1055,11 +1112,11 @@ async function getStage1Buffer() {
     input.value = '';
     input.onchange = async () => {
       const f = input.files[0];
-      if (!f) return reject(new Error('未選擇檔案'));
+      if (!f) return reject(new Error(tr('未選擇檔案', 'No file selected')));
       resolve(await f.arrayBuffer());
     };
-    input.oncancel = () => reject(new Error('已取消選擇 Stage 1 檔案'));
-    showNotice('exportMsg', `ℹ️ 無法自動讀取 ${STAGE1_FILENAME}，請手動選擇該檔案。`);
+    input.oncancel = () => reject(new Error(tr('已取消選擇 Stage 1 檔案', 'Cancelled selecting Stage 1 file')));
+    showNotice('exportMsg', tr(`ℹ️ 無法自動讀取 ${STAGE1_FILENAME}，請手動選擇該檔案。`, `ℹ️ Unable to load ${STAGE1_FILENAME} automatically. Please select the file manually.`));
     input.click();
   });
 }
@@ -1076,14 +1133,13 @@ async function exportModelXLSX() {
   // 軟體與硬體資料都合併（先軟體、後硬體）
   const allRecords = [...records, ...hwRecords];
   if (allRecords.length === 0) {
-    showNotice('exportMsg', '⚠️ 清單中尚無任何資料可以匯出！', true);
+    showNotice('exportMsg', tr('⚠️ 清單中尚無任何資料可以匯出！', '⚠️ No records in the list to export!'), true);
     return;
   }
 
   const btn = document.getElementById('exportModelBtn');
-  const oldText = btn.innerText;
   btn.disabled = true;
-  btn.innerText = '正在產生資料模型...';
+  btn.innerText = tr('正在產生資料模型...', 'Generating Data Model...');
 
   try {
     const buffer = await getStage1Buffer();
@@ -1200,14 +1256,23 @@ async function exportModelXLSX() {
     // 5. 下載
     const out = await workbook.xlsx.writeBuffer();
     modelExportCount++;
-    const userName = document.getElementById('userName').value.trim() || '未命名';
+    const userName = document.getElementById('userName').value.trim() || tr('未命名', 'Unnamed');
     downloadBuffer(out, `DataCollection(${userName})-${getTodayMMDDYYYY()}-${modelExportCount}.xlsx`);
-    const modeLabel = { random: '隨機排列', prepend: '依序附加在頂端', append: '依序附加在底部' }[mode];
-    showNotice('exportMsg', `🎉 資料模型已下載（新增 ${newItems.length} 筆：軟體 ${records.length}、硬體 ${hwRecords.length}，${modeLabel}）！`);
+    const modeLabel = tr(
+      { random: '隨機排列', prepend: '依序附加在頂端', append: '依序附加在底部' }[mode],
+      { random: 'Random Order', prepend: 'Prepend to Top', append: 'Append to Bottom' }[mode]
+    );
+    showNotice(
+      'exportMsg',
+      tr(
+        `🎉 資料模型已下載（新增 ${newItems.length} 筆：軟體 ${records.length}、硬體 ${hwRecords.length}，${modeLabel}）！`,
+        `🎉 Data model downloaded (Added ${newItems.length}: Software ${records.length}, Hardware ${hwRecords.length}, ${modeLabel})!`
+      )
+    );
   } catch (err) {
-    showNotice('exportMsg', '匯出失敗：' + err.message, true);
+    showNotice('exportMsg', tr('匯出失敗：', 'Export failed: ') + err.message, true);
   } finally {
     btn.disabled = false;
-    btn.innerText = oldText;
+    btn.innerText = tr('📊 匯出資料模型(.xlsx)', '📊 Export Data Model (.xlsx)');
   }
 }

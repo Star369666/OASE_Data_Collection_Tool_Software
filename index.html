@@ -18,33 +18,39 @@
 </head>
 <body data-mode="soft">
 
+<!-- 左上角：中文 / English 介面切換 -->
+<div class="lang-switch" role="radiogroup" aria-label="語言切換 / Language">
+  <label class="theme-opt"><input type="radio" name="lang" value="zh" onchange="applyLang(this.value)" checked> 中文</label>
+  <label class="theme-opt"><input type="radio" name="lang" value="en" onchange="applyLang(this.value)"> English</label>
+</div>
+
 <!-- 右上角：亮色 / 深色 / 灰色 -->
 <div class="theme-switch" role="radiogroup" aria-label="顯示模式">
-  <label class="theme-opt"><input type="radio" name="theme" value="light" onchange="applyTheme(this.value)" checked> ☀️ 亮色</label>
-  <label class="theme-opt"><input type="radio" name="theme" value="dark" onchange="applyTheme(this.value)"> 🌙 深色</label>
-  <label class="theme-opt"><input type="radio" name="theme" value="gray" onchange="applyTheme(this.value)"> ☁️ 灰色</label>
+  <label class="theme-opt"><input type="radio" name="theme" value="light" onchange="applyTheme(this.value)" checked> <span data-zh="☀️ 亮色" data-en="☀️ Light">☀️ 亮色</span></label>
+  <label class="theme-opt"><input type="radio" name="theme" value="dark" onchange="applyTheme(this.value)"> <span data-zh="🌙 深色" data-en="🌙 Dark">🌙 深色</span></label>
+  <label class="theme-opt"><input type="radio" name="theme" value="gray" onchange="applyTheme(this.value)"> <span data-zh="☁️ 灰色" data-en="☁️ Gray">☁️ 灰色</span></label>
 </div>
 
 <div class="container">
   <header>
-    <h1>QCI&AI資料模型蒐集</h1>
+    <h1 data-zh="QCI&amp;AI資料模型蒐集" data-en="QCI&amp;AI Data Model Collection">QCI&amp;AI資料模型蒐集</h1>
   </header>
 
   <!-- 第 0 步：全域基本設定 -->
   <div class="card global-card">
     <div style="flex: 1; min-width: 240px;">
-      <label for="userName">你的名字：</label>
-      <input type="text" id="userName" placeholder="請輸入您的名字">
+      <label for="userName" data-zh="你的名字：" data-en="Your Name:">你的名字：</label>
+      <input type="text" id="userName" placeholder="請輸入您的名字" data-ph-zh="請輸入您的名字" data-ph-en="Please enter your name">
     </div>
     <div style="flex: 2; min-width: 320px;">
-      <label>HEGAIImage 權重設定</label>
+      <label data-zh="HEGAIImage 權重設定" data-en="HEGAIImage Weight Settings">HEGAIImage 權重設定</label>
       <div class="slider-row" style="margin-top: 6px;">
-        <span class="weight-label">圖圖相符(<span id="percentV1">--%</span>)</span>
+        <span class="weight-label"><span data-zh="圖圖相符" data-en="Image-Image Match ">圖圖相符</span>(<span id="percentV1">--%</span>)</span>
         <input type="range" id="weightSlider" min="0" max="100" step="1" oninput="onWeightSliderChange(this.value)">
-        <span class="weight-label">圖文相符(<span id="percentV2">--%</span>)</span>
+        <span class="weight-label"><span data-zh="圖文相符" data-en="Image-Text Match ">圖文相符</span>(<span id="percentV2">--%</span>)</span>
       </div>
       <div class="weight-input-row">
-        <label for="weightImgInput">圖圖相符權重：</label>
+        <label for="weightImgInput" data-zh="圖圖相符權重：" data-en="Image-Image Weight:">圖圖相符權重：</label>
         <input type="number" id="weightImgInput" class="val-input" min="0" max="100" step="1" placeholder="0-100" oninput="onWeightInputChange(this.value)">
         <span class="unit-text">%</span>
       </div>
@@ -55,28 +61,32 @@
 
   <!-- 軟體 / 硬體 資料模型切換 -->
   <div class="mode-switch" role="group" aria-label="資料模型類型">
-    <button type="button" class="mode-btn active" data-mode="soft" aria-pressed="true" onclick="setMode('soft')">QCI&amp;AI資料模型(軟體)</button>
-    <button type="button" class="mode-btn" data-mode="hard" aria-pressed="false" onclick="setMode('hard')">QCI&amp;AI資料模型(硬體)</button>
+    <button type="button" class="mode-btn active" data-mode="soft" aria-pressed="true" onclick="setMode('soft')" data-zh="QCI&amp;AI資料模型(軟體)" data-en="QCI&amp;AI Data Model (Software)">QCI&amp;AI資料模型(軟體)</button>
+    <button type="button" class="mode-btn" data-mode="hard" aria-pressed="false" onclick="setMode('hard')" data-zh="QCI&amp;AI資料模型(硬體)" data-en="QCI&amp;AI Data Model (Hardware)">QCI&amp;AI資料模型(硬體)</button>
   </div>
 
   <div class="tabs"> 
-    <div class="tab-btn active" id="btn-tab1" data-soft="Step 1: 語音生圖 與 Distance/Light 評估" data-hard="Step 1: 上傳圖片 與 Distance/Light 評估">Step 1: 語音生圖 與 Distance/Light 評估</div>
-    <div class="tab-btn" id="btn-tab2">Step 2: 圖生文 與 HEGAIText 評估</div>
-    <div class="tab-btn" id="btn-tab3">Step 3: 文生圖 與 HEGAIImage 評估</div>
-    <div class="tab-btn" id="btn-tab4">收集清單<span id="tabListCount" class="counter-badge">0</span></div>
+    <div class="tab-btn active" id="btn-tab1" data-soft="Step 1: 語音生圖 與 Distance/Light 評估" data-hard="Step 1: 上傳圖片 與 Distance/Light 評估" data-soft-en="Step 1: Voice-to-Image &amp; Distance/Light Eval" data-hard-en="Step 1: Upload Image &amp; Distance/Light Eval">Step 1: 語音生圖 與 Distance/Light 評估</div>
+    <div class="tab-btn" id="btn-tab2" data-zh="Step 2: 圖生文 與 HEGAIText 評估" data-en="Step 2: Image-to-Text &amp; HEGAIText Eval">Step 2: 圖生文 與 HEGAIText 評估</div>
+    <div class="tab-btn" id="btn-tab3" data-zh="Step 3: 文生圖 與 HEGAIImage 評估" data-en="Step 3: Text-to-Image &amp; HEGAIImage Eval">Step 3: 文生圖 與 HEGAIImage 評估</div>
+    <div class="tab-btn" id="btn-tab4"><span data-zh="收集清單" data-en="Collection List">收集清單</span><span id="tabListCount" class="counter-badge">0</span></div>
   </div>
 
   <!-- Step 1 -->
   <div id="tab-Step1" class="card tab-pane active">
     <div class="card-title"><span class="badge">Step 1</span>
-      <span class="soft-only">KWS AI 語音輸入生成圖片 與 Distance/Light 評估</span>
-      <span class="hard-only">上傳拍攝圖片 與 Distance/Light 評估</span>
+      <span class="soft-only" data-zh="KWS AI 語音輸入生成圖片 與 Distance/Light 評估" data-en="KWS AI Voice Input Image Generation &amp; Distance/Light Evaluation">KWS AI 語音輸入生成圖片 與 Distance/Light 評估</span>
+      <span class="hard-only" data-zh="上傳拍攝圖片 與 Distance/Light 評估" data-en="Upload Shooting Image &amp; Distance/Light Evaluation">上傳拍攝圖片 與 Distance/Light 評估</span>
     </div>
     
-    <p class="intro-desc soft-only">
+    <p class="intro-desc soft-only"
+       data-html-zh='請前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a> 進行語音輸入並生成圖片。下載圖片後，將產生的文字、圖片與評估分數記錄於下方'
+       data-html-en='Please go to <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a> to use voice input and generate an image. After downloading the image, record the generated text, image, and evaluation scores below.'>
       請前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a> 進行語音輸入並生成圖片。下載圖片後，將產生的文字、圖片與評估分數記錄於下方
     </p>
-    <p class="intro-desc hard-only">
+    <p class="intro-desc hard-only"
+       data-zh="請上傳以QCI&amp;AI硬體學習工具拍攝的圖片 (Shooting Image)，並記錄拍攝距離 (Distance) 與環境亮度 (Light)。下一步將前往 KWS AI 產生描述文字。"
+       data-en="Please upload a photo taken with the QCI&amp;AI hardware learning tool (Shooting Image), and record the shooting distance (Distance) and ambient brightness (Light). In the next step, you will go to KWS AI to generate description text.">
       請上傳以QCI&AI硬體學習工具拍攝的圖片 (Shooting Image)，並記錄拍攝距離 (Distance) 與環境亮度 (Light)。下一步將前往 KWS AI 產生描述文字。
     </p>
     
@@ -89,48 +99,52 @@
       <input type="text" id="engText" placeholder="My mother says I'm beautiful.">
     </div>
     <div class="form-group">
-      <label for="genImageInput" data-soft="上傳生成圖片" data-hard="上傳拍攝圖片">上傳生成圖片</label>
+      <label for="genImageInput" data-soft="上傳生成圖片" data-hard="上傳拍攝圖片" data-soft-en="Upload Generated Image" data-hard-en="Upload Shooting Image">上傳生成圖片</label>
       <input type="file" id="genImageInput" accept="image/*" onchange="handleImage(this, 'prev1', 'currImg1')">
       
       <!-- 把整塊容器先設為 display: none -->
       <div id="prev1-container" style="display: none; text-align: center; margin-top: 8px;">
         <img id="prev1" class="img-preview" alt="Image" style="margin: 0 auto;">
-        <div class="compare-title" data-soft="Generated Image" data-hard="Shooting Image">Generated Image</div>
+        <div class="compare-title" data-soft="Generated Image" data-hard="Shooting Image" data-soft-en="Generated Image" data-hard-en="Shooting Image">Generated Image</div>
       </div>
     </div>
     
     <div class="form-group">
-      <label for="distance">Distance (拍攝距離評估，0-255 cm):</label>
+      <label for="distance" data-zh="Distance (拍攝距離評估，0-255 cm):" data-en="Distance (Shooting distance evaluation, 0-255 cm):">Distance (拍攝距離評估，0-255 cm):</label>
       <div class="slider-row">
         <input type="range" id="distanceRange" min="0" max="255" value="127" oninput="syncInput('distanceRange', 'distance', false, 0, 255)">
-        <input type="number" id="distance" class="val-input" min="0" max="255" value="" placeholder="未定" oninput="syncInput('distance', 'distanceRange', false, 0, 255)">
+        <input type="number" id="distance" class="val-input" min="0" max="255" value="" placeholder="未定" data-ph-zh="未定" data-ph-en="Unset" oninput="syncInput('distance', 'distanceRange', false, 0, 255)">
         <span class="unit-text">cm</span>
       </div>
     </div>
     <div class="form-group">
-      <label for="light">Light (環境亮度評估，0-4000 lux):</label>
+      <label for="light" data-zh="Light (環境亮度評估，0-4000 lux):" data-en="Light (Ambient brightness evaluation, 0-4000 lux):">Light (環境亮度評估，0-4000 lux):</label>
       <div class="slider-row">
         <input type="range" id="lightRange" min="0" max="4000" step="1" value="2000" oninput="syncInput('lightRange', 'light', false, 0, 4000)">
-        <input type="number" id="light" class="val-input" min="0" max="4000" value="" placeholder="未定" oninput="syncInput('light', 'lightRange', false, 0, 4000)">
+        <input type="number" id="light" class="val-input" min="0" max="4000" value="" placeholder="未定" data-ph-zh="未定" data-ph-en="Unset" oninput="syncInput('light', 'lightRange', false, 0, 4000)">
         <span class="unit-text">lux</span>
       </div>
     </div>
     
     <div id="Step1Msg" class="msg-box"></div>
     <div class="actions">
-      <button class="btn-secondary" id="cancelStep1Btn" style="flex: 1; display: none;" onclick="cancelToTab4()">⬅️ 取消新增，返回清單</button>
-      <button class="btn-primary" style="flex: 2;" onclick="goToStep2()">下一步：前往 Step 2 ➡️</button>
+      <button class="btn-secondary" id="cancelStep1Btn" style="flex: 1; display: none;" onclick="cancelToTab4()" data-zh="⬅️ 取消新增，返回清單" data-en="⬅️ Cancel &amp; Back to List">⬅️ 取消新增，返回清單</button>
+      <button class="btn-primary" style="flex: 2;" onclick="goToStep2()" data-zh="下一步：前往 Step 2 ➡️" data-en="Next: Go to Step 2 ➡️">下一步：前往 Step 2 ➡️</button>
     </div>
   </div>
 
   <!-- Step 2 -->
   <div id="tab-Step2" class="card tab-pane">
-    <div class="card-title"><span class="badge">Step 2</span>KWS AI 圖片生成文字描述 與 HEGAIText 評估</div>
+    <div class="card-title"><span class="badge">Step 2</span><span data-zh="KWS AI 圖片生成文字描述 與 HEGAIText 評估" data-en="KWS AI Image-to-Text Description &amp; HEGAIText Evaluation">KWS AI 圖片生成文字描述 與 HEGAIText 評估</span></div>
     
-    <p class="intro-desc soft-only">
+    <p class="intro-desc soft-only"
+       data-html-zh='請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳生成圖片 (Generated Image)，使用模型 Llama 3.2/Gemma 4 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估'
+       data-html-en='Please go to <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>, upload the Generated Image, use the Llama 3.2/Gemma 4 model to generate description text, and evaluate how well the text matches the image (HEGAIText).'>
       請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳生成圖片 (Generated Image)，使用模型 Llama 3.2/Gemma 4 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估
     </p>
-    <p class="intro-desc hard-only">
+    <p class="intro-desc hard-only"
+       data-html-zh='請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳拍攝圖片 (Shooting Image)，使用模型 Llama 3.2/Gemma 4 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估'
+       data-html-en='Please go to <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>, upload the Shooting Image, use the Llama 3.2/Gemma 4 model to generate description text, and evaluate how well the text matches the image (HEGAIText).'>
       請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳拍攝圖片 (Shooting Image)，使用模型 Llama 3.2/Gemma 4 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估
     </p>
 
@@ -139,40 +153,42 @@
       <div style="text-align: center;">
         <img id="Step2-ref-img1" class="img-preview" style="max-height: 150px; margin: 0 auto;" alt="圖1對照">
       </div>
-      <div class="compare-title" data-soft="Generated Image" data-hard="Shooting Image">Generated Image</div>
+      <div class="compare-title" data-soft="Generated Image" data-hard="Shooting Image" data-soft-en="Generated Image" data-hard-en="Shooting Image">Generated Image</div>
     </div>
 
     <div class="form-group hard-only">
       <label for="gaiTextCn">GAIText (Chinese)</label>
-      <textarea id="gaiTextCn" rows="2" placeholder="由 Shooting Image 生成的中文描述文字"></textarea>
+      <textarea id="gaiTextCn" rows="2" placeholder="由 Shooting Image 生成的中文描述文字" data-ph-zh="由 Shooting Image 生成的中文描述文字" data-ph-en="Chinese description text generated from Shooting Image"></textarea>
     </div>
 
     <div class="form-group">
-      <label for="gaiText" data-soft="GAIText (English or Chinese)" data-hard="GAIText (English)">GAIText (English or Chinese)</label>
-      <textarea id="gaiText" rows="2" placeholder="由 Generated Image 生成的描述文字" data-ph-soft="由 Generated Image 生成的描述文字" data-ph-hard="由 Shooting Image 生成的英文描述文字"></textarea>
+      <label for="gaiText" data-soft="GAIText (English or Chinese)" data-hard="GAIText (English)" data-soft-en="GAIText (English or Chinese)" data-hard-en="GAIText (English)">GAIText (English or Chinese)</label>
+      <textarea id="gaiText" rows="2" placeholder="由 Generated Image 生成的描述文字" data-ph-soft="由 Generated Image 生成的描述文字" data-ph-hard="由 Shooting Image 生成的英文描述文字" data-ph-soft-en="Description text generated from Generated Image" data-ph-hard-en="English description text generated from Shooting Image"></textarea>
     </div>
     
     <div class="form-group">
-      <label for="hegaiText">HEGAIText (評估 GAIText 與圖片的相符程度，0-10 分):</label>
+      <label for="hegaiText" data-zh="HEGAIText (評估 GAIText 與圖片的相符程度，0-10 分):" data-en="HEGAIText (Evaluate how well GAIText matches the image, 0-10 pts):">HEGAIText (評估 GAIText 與圖片的相符程度，0-10 分):</label>
       <div class="slider-row">
         <input type="range" id="hegaiTextRange" min="0" max="10" step="1" value="5" oninput="syncInput('hegaiTextRange', 'hegaiText', false, 0, 10)">
-        <input type="number" id="hegaiText" class="val-input" min="0" max="10" value="" placeholder="未定" oninput="syncInput('hegaiText', 'hegaiTextRange', false, 0, 10)">
-        <span class="unit-text">分</span>
+        <input type="number" id="hegaiText" class="val-input" min="0" max="10" value="" placeholder="未定" data-ph-zh="未定" data-ph-en="Unset" oninput="syncInput('hegaiText', 'hegaiTextRange', false, 0, 10)">
+        <span class="unit-text" data-zh="分" data-en="pts">分</span>
       </div>
     </div>
     
     <div id="Step2Msg" class="msg-box"></div>
     <div class="actions">
-      <button class="btn-secondary" style="flex: 1;" onclick="goBackTo('tab-Step1', 'btn-tab1')">⬅️ 上一步：回 Step 1</button>
-      <button class="btn-primary" style="flex: 2;" onclick="goToStep3()">下一步：前往 Step 3 ➡️</button>
+      <button class="btn-secondary" style="flex: 1;" onclick="goBackTo('tab-Step1', 'btn-tab1')" data-zh="⬅️ 上一步：回 Step 1" data-en="⬅️ Back: Step 1">⬅️ 上一步：回 Step 1</button>
+      <button class="btn-primary" style="flex: 2;" onclick="goToStep3()" data-zh="下一步：前往 Step 3 ➡️" data-en="Next: Go to Step 3 ➡️">下一步：前往 Step 3 ➡️</button>
     </div>
   </div>
 
   <!-- Step 3 -->
   <div id="tab-Step3" class="card tab-pane">
-    <div class="card-title"><span class="badge">Step 3</span> 文字描述生成圖片 與 HEGAIImage 評估</div>
+    <div class="card-title"><span class="badge">Step 3</span> <span data-zh="文字描述生成圖片 與 HEGAIImage 評估" data-en="Text-to-Image Generation &amp; HEGAIImage Evaluation">文字描述生成圖片 與 HEGAIImage 評估</span></div>
 
-    <p class="intro-desc">
+    <p class="intro-desc"
+       data-html-zh='請再次前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a>，輸入圖片描述文字 GAIText (English) 來生成圖片 GAIImage，並進行 HEGAIImage 評估'
+       data-html-en='Please go to <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a> again, enter the image description text GAIText (English) to generate GAIImage, and evaluate HEGAIImage.'>
       請再次前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a>，輸入圖片描述文字 GAIText (English) 來生成圖片 GAIImage，並進行 HEGAIImage 評估
     </p>
     
@@ -183,12 +199,12 @@
     </div>
 
     <div class="compare-panel">
-      <div class="compare-title" data-soft="評估 Generated Image 與 GAIImage 的相符程度" data-hard="評估 Shooting Image 與 GAIImage 的相符程度">評估 Generated Image 與 GAIImage 的相符程度</div>
+      <div class="compare-title" data-soft="評估 Generated Image 與 GAIImage 的相符程度" data-hard="評估 Shooting Image 與 GAIImage 的相符程度" data-soft-en="Evaluate how well Generated Image matches GAIImage" data-hard-en="Evaluate how well Shooting Image matches GAIImage">評估 Generated Image 與 GAIImage 的相符程度</div>
       <div class="compare-row">
         <div class="compare-item">
           
           <img id="Step3-ref-img1" class="img-preview" alt="圖1">
-          <span data-soft="Generated Image" data-hard="Shooting Image">Generated Image</span>
+          <span data-soft="Generated Image" data-hard="Shooting Image" data-soft-en="Generated Image" data-hard-en="Shooting Image">Generated Image</span>
         </div>
         <div class="vs-badge">VS</div>
         <div class="compare-item">
@@ -199,17 +215,17 @@
       </div>
       
       <div class="form-group" style="margin-top: 12px;">
-        <label for="v1" data-soft="HEGAIImage_v1 (評估 Generated Image 與 GAIImage 的相符程度，0-10 分):" data-hard="HEGAIImage_v1 (評估 Shooting Image 與 GAIImage 的相符程度，0-10 分):">HEGAIImage_v1 (評估 Generated Image 與 GAIImage 的相符程度，0-10 分):</label>
+        <label for="v1" data-soft="HEGAIImage_v1 (評估 Generated Image 與 GAIImage 的相符程度，0-10 分):" data-hard="HEGAIImage_v1 (評估 Shooting Image 與 GAIImage 的相符程度，0-10 分):" data-soft-en="HEGAIImage_v1 (Evaluate how well Generated Image matches GAIImage, 0-10 pts):" data-hard-en="HEGAIImage_v1 (Evaluate how well Shooting Image matches GAIImage, 0-10 pts):">HEGAIImage_v1 (評估 Generated Image 與 GAIImage 的相符程度，0-10 分):</label>
         <div class="slider-row">
           <input type="range" id="v1Range" min="0" max="10" step="1" value="5" oninput="syncInput('v1Range', 'v1', true, 0, 10)">
-          <input type="number" id="v1" class="val-input" min="0" max="10" value="" placeholder="未定" oninput="syncInput('v1', 'v1Range', true, 0, 10)">
-          <span class="unit-text">分</span>
+          <input type="number" id="v1" class="val-input" min="0" max="10" value="" placeholder="未定" data-ph-zh="未定" data-ph-en="Unset" oninput="syncInput('v1', 'v1Range', true, 0, 10)">
+          <span class="unit-text" data-zh="分" data-en="pts">分</span>
         </div>
       </div>
     </div>
 
     <div class="compare-panel">
-      <div class="compare-title">評估 GAIImage 圖片與 GAIText (English) 的相符程度</div>
+      <div class="compare-title" data-zh="評估 GAIImage 圖片與 GAIText (English) 的相符程度" data-en="Evaluate how well GAIImage matches GAIText (English)">評估 GAIImage 圖片與 GAIText (English) 的相符程度</div>
       <div class="compare-row">
         <div class="compare-item">
           <span>GAIText (English)</span>
@@ -223,11 +239,11 @@
         </div>
       </div>
       <div class="form-group" style="margin-top: 12px;">
-        <label for="v2">HEGAIImage_v2 (評估 GAIText (English) 圖片與 GAIImage 的相符程度，0-10 分):</label>
+        <label for="v2" data-zh="HEGAIImage_v2 (評估 GAIText (English) 圖片與 GAIImage 的相符程度，0-10 分):" data-en="HEGAIImage_v2 (Evaluate how well GAIText (English) matches GAIImage, 0-10 pts):">HEGAIImage_v2 (評估 GAIText (English) 圖片與 GAIImage 的相符程度，0-10 分):</label>
         <div class="slider-row">
           <input type="range" id="v2Range" min="0" max="10" step="1" value="5" oninput="syncInput('v2Range', 'v2', true, 0, 10)">
-          <input type="number" id="v2" class="val-input" min="0" max="10" value="" placeholder="未定" oninput="syncInput('v2', 'v2Range', true, 0, 10)">
-          <span class="unit-text">分</span>
+          <input type="number" id="v2" class="val-input" min="0" max="10" value="" placeholder="未定" data-ph-zh="未定" data-ph-en="Unset" oninput="syncInput('v2', 'v2Range', true, 0, 10)">
+          <span class="unit-text" data-zh="分" data-en="pts">分</span>
         </div>
       </div>
     </div>
@@ -239,7 +255,7 @@
     
     <div id="actionMsg" class="msg-box"></div>
     <div class="actions">
-      <button class="btn-secondary" style="flex: 1;" onclick="goBackTo('tab-Step2', 'btn-tab2')">⬅️ 上一步：回 Step 2</button>
+      <button class="btn-secondary" style="flex: 1;" onclick="goBackTo('tab-Step2', 'btn-tab2')" data-zh="⬅️ 上一步：回 Step 2" data-en="⬅️ Back: Step 2">⬅️ 上一步：回 Step 2</button>
       <button class="btn-add" id="submitBtn" style="flex: 2;" onclick="saveRecord()">💾 儲存並前往收集清單</button>
     </div>
   </div>
@@ -247,30 +263,32 @@
   <!-- List -->
   <div id="tab-list" class="card tab-pane">
     <div class="card-title">
-      已收集清單
+      <span data-zh="已收集清單" data-en="Collected List">已收集清單</span>
       <span class="counter-badge" id="listCount">0 筆</span>
     </div>
 
     <!-- 統計欄位 -->
     <div class="stats-bar" id="recordStats">
-      <span>軟體資料模型：<b id="statSoft">0</b> 筆</span>
+      <span><span data-zh="軟體資料模型：" data-en="Software Data Model: ">軟體資料模型：</span><b id="statSoft">0</b> <span data-zh="筆" data-en="records">筆</span></span>
       <span class="stats-sep">｜</span>
-      <span>硬體資料模型：<b id="statHard">0</b> 筆</span>
+      <span><span data-zh="硬體資料模型：" data-en="Hardware Data Model: ">硬體資料模型：</span><b id="statHard">0</b> <span data-zh="筆" data-en="records">筆</span></span>
       <span class="stats-sep">｜</span>
-      <span>合計：<b id="statTotal">0</b> 筆</span>
+      <span><span data-zh="合計：" data-en="Total: ">合計：</span><b id="statTotal">0</b> <span data-zh="筆" data-en="records">筆</span></span>
     </div>
 
-    <p class="intro-desc">
+    <p class="intro-desc"
+       data-zh="您可以在此確認、編輯或刪除所有已暫存的收集資料。完成收集後，請點擊下方按鈕將完整結果匯出為 Excel 檔案。"
+       data-en="Here you can review, edit, or delete all temporarily saved records. When finished, click the buttons below to export the full results as an Excel file.">
       您可以在此確認、編輯或刪除所有已暫存的收集資料。完成收集後，請點擊下方按鈕將完整結果匯出為 Excel 檔案。
     </p>
 
     <!-- 軟體資料模型清單 -->
-    <div class="table-title">QCI&amp;AI資料模型(軟體) <span class="counter-badge" id="softCount">0 筆</span></div>
+    <div class="table-title"><span data-zh="QCI&amp;AI資料模型(軟體)" data-en="QCI&amp;AI Data Model (Software)">QCI&amp;AI資料模型(軟體)</span> <span class="counter-badge" id="softCount">0 筆</span></div>
     <div class="preview-table-container">
       <table>
         <thead>
           <tr>
-            <th>操作</th>
+            <th data-zh="操作" data-en="Actions">操作</th>
             <th>No.</th>
             <th>Generated Image</th>
             <th>Chinese</th>
@@ -286,18 +304,18 @@
           </tr>
         </thead>
         <tbody id="recordTableBody">
-          <tr><td colspan="13" class="empty-row">目前尚無已暫存的資料</td></tr>
+          <tr><td colspan="13" class="empty-row" data-zh="目前尚無已暫存的資料" data-en="No records saved yet">目前尚無已暫存的資料</td></tr>
         </tbody>
       </table>
     </div>
 
     <!-- 硬體資料模型清單 -->
-    <div class="table-title">QCI&amp;AI資料模型(硬體) <span class="counter-badge" id="hardCount">0 筆</span></div>
+    <div class="table-title"><span data-zh="QCI&amp;AI資料模型(硬體)" data-en="QCI&amp;AI Data Model (Hardware)">QCI&amp;AI資料模型(硬體)</span> <span class="counter-badge" id="hardCount">0 筆</span></div>
     <div class="preview-table-container">
       <table>
         <thead>
           <tr>
-            <th>操作</th>
+            <th data-zh="操作" data-en="Actions">操作</th>
             <th>No.</th>
             <th>Shooting Image</th>
             <th>Distance</th>
@@ -312,7 +330,7 @@
           </tr>
         </thead>
         <tbody id="hwRecordTableBody">
-          <tr><td colspan="12" class="empty-row">目前尚無已暫存的資料</td></tr>
+          <tr><td colspan="12" class="empty-row" data-zh="目前尚無已暫存的資料" data-en="No records saved yet">目前尚無已暫存的資料</td></tr>
         </tbody>
       </table>
     </div>
@@ -320,37 +338,37 @@
     <div id="exportMsg" class="msg-box"></div>
 
     <div class="list-section">
-      <div class="list-section-title">① 收集資料</div>
+      <div class="list-section-title" data-zh="① 收集資料" data-en="① Collect Data">① 收集資料</div>
       <div class="actions">
-        <button class="btn-add" style="flex: 1;" onclick="startNewRecord('soft')">＋ 繼續收集軟體資料</button>
-        <button class="btn-add" style="flex: 1;" onclick="startNewRecord('hard')">＋ 繼續收集硬體資料</button>
-        <button class="btn-secondary" id="clearTempBtn" style="flex: 1;" onclick="clearAllTempForms()">🗑️ 清空軟體和硬體暫存表格</button>
+        <button class="btn-add" style="flex: 1;" onclick="startNewRecord('soft')" data-zh="＋ 繼續收集軟體資料" data-en="＋ Continue Collecting Software Data">＋ 繼續收集軟體資料</button>
+        <button class="btn-add" style="flex: 1;" onclick="startNewRecord('hard')" data-zh="＋ 繼續收集硬體資料" data-en="＋ Continue Collecting Hardware Data">＋ 繼續收集硬體資料</button>
+        <button class="btn-secondary" id="clearTempBtn" style="flex: 1;" onclick="clearAllTempForms()" data-zh="🗑️ 清空軟體和硬體暫存表格" data-en="🗑️ Clear Software &amp; Hardware Temp Forms">🗑️ 清空軟體和硬體暫存表格</button>
       </div>
     </div>
 
     <div class="list-section">
-      <div class="list-section-title">② 匯出收集範本</div>
+      <div class="list-section-title" data-zh="② 匯出收集範本" data-en="② Export Collection Template">② 匯出收集範本</div>
       <div class="radio-row">
-        <label class="radio-opt"><input type="radio" name="templateMode" value="both" checked> 匯出軟體和硬體資料模型範本</label>
-        <label class="radio-opt"><input type="radio" name="templateMode" value="soft"> 匯出軟體資料模型範本</label>
-        <label class="radio-opt"><input type="radio" name="templateMode" value="hard"> 匯出硬體資料模型範本</label>
+        <label class="radio-opt"><input type="radio" name="templateMode" value="both" checked> <span data-zh="匯出軟體和硬體資料模型範本" data-en="Export Software &amp; Hardware Data Model Templates">匯出軟體和硬體資料模型範本</span></label>
+        <label class="radio-opt"><input type="radio" name="templateMode" value="soft"> <span data-zh="匯出軟體資料模型範本" data-en="Export Software Data Model Template">匯出軟體資料模型範本</span></label>
+        <label class="radio-opt"><input type="radio" name="templateMode" value="hard"> <span data-zh="匯出硬體資料模型範本" data-en="Export Hardware Data Model Template">匯出硬體資料模型範本</span></label>
       </div>
-      <p class="hint-text">依上方選擇匯出對應的資料模型範本工作表。</p>
+      <p class="hint-text" data-zh="依上方選擇匯出對應的資料模型範本工作表。" data-en="Export the corresponding data model template worksheet(s) based on your selection above.">依上方選擇匯出對應的資料模型範本工作表。</p>
       <div class="actions">
-        <button class="btn-primary" id="exportBtn" style="flex: 1;" onclick="exportAllXLSX()">⬇️ 匯出資料模型範本(.xlsx)</button>
+        <button class="btn-primary" id="exportBtn" style="flex: 1;" onclick="exportAllXLSX()" data-zh="⬇️ 匯出資料模型範本(.xlsx)" data-en="⬇️ Export Data Model Template (.xlsx)">⬇️ 匯出資料模型範本(.xlsx)</button>
       </div>
     </div>
 
     <div class="list-section">
-      <div class="list-section-title">③ 匯出資料模型最終檔案(加入OASE Lab.團隊專家資料)</div>
+      <div class="list-section-title" data-zh="③ 匯出資料模型最終檔案(加入OASE Lab.團隊專家資料)" data-en="③ Export Final Data Model File (Include OASE Lab. Expert Data)">③ 匯出資料模型最終檔案(加入OASE Lab.團隊專家資料)</div>
       <div class="radio-row">
-        <label class="radio-opt"><input type="radio" name="mergeMode" value="prepend" checked> 依序附加在頂端</label>
-        <label class="radio-opt"><input type="radio" name="mergeMode" value="append"> 依序附加在底部</label>
-        <label class="radio-opt"><input type="radio" name="mergeMode" value="random"> 隨機排列</label>
+        <label class="radio-opt"><input type="radio" name="mergeMode" value="prepend" checked> <span data-zh="依序附加在頂端" data-en="Prepend to Top in Order">依序附加在頂端</span></label>
+        <label class="radio-opt"><input type="radio" name="mergeMode" value="append"> <span data-zh="依序附加在底部" data-en="Append to Bottom in Order">依序附加在底部</span></label>
+        <label class="radio-opt"><input type="radio" name="mergeMode" value="random"> <span data-zh="隨機排列" data-en="Random Order">隨機排列</span></label>
       </div>
-      <p class="hint-text">依序合併軟體與硬體資料，新增的資料列會以紅色字標示，GAIFit 套用 HEGAIText0.7 + HEGAIImage0.3。</p>
+      <p class="hint-text" data-zh="依序合併軟體與硬體資料，新增的資料列會以紅色字標示，GAIFit 套用 HEGAIText0.7 + HEGAIImage0.3。" data-en="Merges software and hardware data in order. Newly added rows are highlighted in red, and GAIFit applies HEGAIText*0.7 + HEGAIImage*0.3.">依序合併軟體與硬體資料，新增的資料列會以紅色字標示，GAIFit 套用 HEGAIText0.7 + HEGAIImage0.3。</p>
       <div class="actions">
-        <button class="btn-primary" id="exportModelBtn" style="flex: 1;" onclick="exportModelXLSX()">📊 匯出資料模型(.xlsx)</button>
+        <button class="btn-primary" id="exportModelBtn" style="flex: 1;" onclick="exportModelXLSX()" data-zh="📊 匯出資料模型(.xlsx)" data-en="📊 Export Data Model (.xlsx)">📊 匯出資料模型(.xlsx)</button>
       </div>
       <input type="file" id="stage1FileInput" accept=".xlsx" style="display:none;">
     </div>
