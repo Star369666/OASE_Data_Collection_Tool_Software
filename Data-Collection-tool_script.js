@@ -731,25 +731,58 @@ const MEDIUM_BORDER = {
   right: { style: 'medium', color: { argb: 'FF000000' } }
 };
 
+// 將圖片以「較長邊 = 5 公分 (1,800,000 EMUs)、另一邊等比例縮放」置中放入指定儲存格
+function placeCenteredImage5cm(workbook, sheet, img, colIdx, rowIdx, colWidth = 32.25, rowHeightPt = 191.25) {
+  if (!img) return;
+  const TARGET_EMU = 5 * 360000; // 5 cm = 1,800,000 EMUs
+  const EMU_PER_PX = 9525;       // ExcelJS 內部 1 px = 9525 EMUs
+  const origW = img.width || 1;
+  const origH = img.height || 1;
+
+  let widthEmu, heightEmu;
+  if (origW >= origH) {
+    widthEmu = TARGET_EMU;
+    heightEmu = Math.round(TARGET_EMU * (origH / origW));
+  } else {
+    heightEmu = TARGET_EMU;
+    widthEmu = Math.round(TARGET_EMU * (origW / origH));
+  }
+
+  const cellWidthEmu = Math.round(colWidth * 76200);
+  const cellHeightEmu = Math.round(rowHeightPt * 12700);
+  const nativeColOff = Math.max(0, Math.round((cellWidthEmu - widthEmu) / 2));
+  const nativeRowOff = Math.max(0, Math.round((cellHeightEmu - heightEmu) / 2));
+
+  const imgId = workbook.addImage({ base64: img.base64, extension: img.ext });
+  sheet.addImage(imgId, {
+    tl: { nativeCol: colIdx, nativeColOff, nativeRow: rowIdx, nativeRowOff },
+    ext: { width: (widthEmu + 0.5) / EMU_PER_PX, height: (heightEmu + 0.5) / EMU_PER_PX },
+    editAs: 'oneCell'
+  });
+}
+
 function buildSoftSheet(workbook, sheet, list) {
   const { w1, w2 } = state;
   const mediumBorder = MEDIUM_BORDER;
+  const COL_IMG_W = 32.25; // Excel 顯示 31.6 (323 像素)
+  const DATA_ROW_H = 191.25;
 
   sheet.columns = [
-    { key: 'A', width: 32.25 },
-    { key: 'B', width: 13.0 },
-    { key: 'C', width: 27.38 },
+    { key: 'A', width: COL_IMG_W },
+    { key: 'B', width: 32.25 },
+    { key: 'C', width: 32.25 },
     { key: 'D', width: 19.75 },
     { key: 'E', width: 18.66 },
     { key: 'F', width: 58.5 },
     { key: 'G', width: 22.66 },
-    { key: 'H', width: 54.13 },
+    { key: 'H', width: COL_IMG_W },
     { key: 'I', width: 19.25 },
     { key: 'J', width: 19.25 },
     { key: 'K', width: 16.75 }
   ];
 
   const headerRow = sheet.getRow(1);
+  headerRow.height = 30.6;
   const headerValues = [
     'Generated Image',
     'Chinese',
@@ -782,6 +815,7 @@ function buildSoftSheet(workbook, sheet, list) {
   list.forEach((rec, idx) => {
     const rowNum = idx + 2;
     const row = sheet.getRow(rowNum);
+    row.height = DATA_ROW_H;
 
     row.getCell(2).value = rec.chinese;
     row.getCell(2).font = { name: '標楷體', size: 12, bold: false, color: { argb: 'FF000000' } };
@@ -817,40 +851,12 @@ function buildSoftSheet(workbook, sheet, list) {
       c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     }
 
-    const TARGET_PX = 151; 
-    const cellH_PX = 255;
-    
-    if (rec.img1) {
-      const cellW1_PX = 230;
-      const fit1 = calculateFitDimensions(rec.img1.width, rec.img1.height, TARGET_PX, TARGET_PX);
-      const offsetX1 = ((cellW1_PX - fit1.width) / 2) / cellW1_PX;
-      const offsetY1 = ((cellH_PX - fit1.height) / 2) / cellH_PX;
-
-      const imgId1 = workbook.addImage({ base64: rec.img1.base64, extension: rec.img1.ext });
-      sheet.addImage(imgId1, {
-        tl: { col: 0 + offsetX1, row: (rowNum - 1) + offsetY1 },
-        ext: { width: fit1.width, height: fit1.height },
-        editAs: 'oneCell'
-      });
-    }
-
-    if (rec.img2) {
-      const cellW2_PX = 386;
-      const fit2 = calculateFitDimensions(rec.img2.width, rec.img2.height, TARGET_PX, TARGET_PX);
-      const offsetX2 = ((cellW2_PX - fit2.width) / 2) / cellW2_PX;
-      const offsetY2 = ((cellH_PX - fit2.height) / 2) / cellH_PX;
-
-      const imgId2 = workbook.addImage({ base64: rec.img2.base64, extension: rec.img2.ext });
-      sheet.addImage(imgId2, {
-        tl: { col: 7 + offsetX2, row: (rowNum - 1) + offsetY2 },
-        ext: { width: fit2.width, height: fit2.height },
-        editAs: 'oneCell'
-      });
-    }
+    placeCenteredImage5cm(workbook, sheet, rec.img1, 0, rowNum - 1, COL_IMG_W, DATA_ROW_H);
+    placeCenteredImage5cm(workbook, sheet, rec.img2, 7, rowNum - 1, COL_IMG_W, DATA_ROW_H);
   });
 
   sheet.eachRow((row, rowNumber) => {
-    row.height = (rowNumber === 1) ? 47 : 191.25;
+    row.height = (rowNumber === 1) ? 30.6 : DATA_ROW_H;
   });
 }
 
@@ -861,15 +867,17 @@ function buildHardSheet(workbook, sheet, list) {
   const BLACK = 'FF000000';
   const RED = 'FFC00000';
   const PURPLE = 'FF7030A0';
+  const COL_IMG_W = 32.25; // Excel 顯示 31.6 (323 像素)
+  const DATA_ROW_H = 191.25;
 
   sheet.columns = [
-    { key: 'A', width: 30.66 },
+    { key: 'A', width: COL_IMG_W },
     { key: 'B', width: 15.33 },
     { key: 'C', width: 14.58 },
-    { key: 'D', width: 14.58 },
-    { key: 'E', width: 41.75 },
+    { key: 'D', width: 32.25 },
+    { key: 'E', width: 32.25 },
     { key: 'F', width: 20.63 },
-    { key: 'G', width: 29.0 },
+    { key: 'G', width: COL_IMG_W },
     { key: 'H', width: 19.63 },
     { key: 'I', width: 19.63 },
     { key: 'J', width: 23.25 }
@@ -905,6 +913,7 @@ function buildHardSheet(workbook, sheet, list) {
   ];
 
   const headerRow = sheet.getRow(1);
+  headerRow.height = 30.6;
   headerValues.forEach((val, idx) => {
     const cell = headerRow.getCell(idx + 1);
     cell.value = val;
@@ -913,15 +922,10 @@ function buildHardSheet(workbook, sheet, list) {
     cell.border = MEDIUM_BORDER;
   });
 
-  // 圖片尺寸嚴格控制在格子寬度內並置中 (A欄 30/245px、G欄 28.38/232px)
-  const TARGET_PX = 151;
-  const CELL_H_PX = 255;
-  const COL_A_PX = 218;
-  const COL_G_PX = 206;
-
   list.forEach((rec, idx) => {
     const rowNum = idx + 2;
     const row = sheet.getRow(rowNum);
+    row.height = DATA_ROW_H;
 
     row.getCell(2).value = rec.distance;
     row.getCell(3).value = rec.light;
@@ -939,24 +943,12 @@ function buildHardSheet(workbook, sheet, list) {
       c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     }
 
-    const placeImage = (img, colIdx, colPx) => {
-      if (!img) return;
-      const fit = calculateFitDimensions(img.width, img.height, TARGET_PX, TARGET_PX);
-      const offX = ((colPx - fit.width) / 2) / colPx;
-      const offY = ((CELL_H_PX - fit.height) / 2) / CELL_H_PX;
-      const id = workbook.addImage({ base64: img.base64, extension: img.ext });
-      sheet.addImage(id, {
-        tl: { col: colIdx + offX, row: (rowNum - 1) + offY },
-        ext: { width: fit.width, height: fit.height },
-        editAs: 'oneCell'
-      });
-    };
-    placeImage(rec.img1, 0, COL_A_PX);
-    placeImage(rec.img2, 6, COL_G_PX);
+    placeCenteredImage5cm(workbook, sheet, rec.img1, 0, rowNum - 1, COL_IMG_W, DATA_ROW_H);
+    placeCenteredImage5cm(workbook, sheet, rec.img2, 6, rowNum - 1, COL_IMG_W, DATA_ROW_H);
   });
 
   sheet.eachRow((row, rowNumber) => {
-    row.height = (rowNumber === 1) ? 49.5 : 191.25;
+    row.height = (rowNumber === 1) ? 30.6 : DATA_ROW_H;
   });
 }
 
