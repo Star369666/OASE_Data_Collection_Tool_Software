@@ -37,7 +37,7 @@
       <input type="text" id="userName" placeholder="請輸入您的名字">
     </div>
     <div style="flex: 2; min-width: 320px;">
-      <label>HEGAIImage權重設定</label>
+      <label>HEGAIImage 權重設定</label>
       <div class="slider-row" style="margin-top: 6px;">
         <span class="weight-label">圖圖相符(<span id="percentV1">--%</span>)</span>
         <input type="range" id="weightSlider" min="0" max="100" step="1" oninput="onWeightSliderChange(this.value)">
@@ -74,10 +74,10 @@
     </div>
     
     <p class="intro-desc soft-only">
-      請前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a> 進行語音輸入並生成圖片。下載圖片後，將產生的文字、圖片與評估參數記錄於下方
+      請前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a> 進行語音輸入並生成圖片。下載圖片後，將產生的文字、圖片與評估分數記錄於下方
     </p>
     <p class="intro-desc hard-only">
-      請上傳以硬體設備拍攝的圖片 (Shooting Image)，並記錄拍攝距離 (Distance) 與環境亮度 (Light)。下一步將前往 KWS AI 產生描述文字。
+      請上傳以QCI&AI硬體學習工具拍攝的圖片 (Shooting Image)，並記錄拍攝距離 (Distance) 與環境亮度 (Light)。下一步將前往 KWS AI 產生描述文字。
     </p>
     
     <div class="form-group soft-only">
@@ -89,7 +89,7 @@
       <input type="text" id="engText" placeholder="My mother says I'm beautiful.">
     </div>
     <div class="form-group">
-      <label for="genImageInput" data-soft="上傳生成圖片" data-hard="上傳拍攝圖片 (Shooting Image)">上傳生成圖片</label>
+      <label for="genImageInput" data-soft="上傳生成圖片" data-hard="上傳拍攝圖片">上傳生成圖片</label>
       <input type="file" id="genImageInput" accept="image/*" onchange="handleImage(this, 'prev1', 'currImg1')">
       
       <!-- 把整塊容器先設為 display: none -->
@@ -125,13 +125,13 @@
 
   <!-- Step 2 -->
   <div id="tab-Step2" class="card tab-pane">
-    <div class="card-title"><span class="badge">Step 2</span>圖片生成文字描述 與 HEGAIText 評估</div>
+    <div class="card-title"><span class="badge">Step 2</span>KWS AI 圖片生成文字描述 與 HEGAIText 評估</div>
     
     <p class="intro-desc soft-only">
-      請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳 Generated Image，使用模型 Llama 3.2/Gemma 4 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估
+      請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳生成圖片 (Generated Image)，使用模型 Llama 3.2/Gemma 4 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估
     </p>
     <p class="intro-desc hard-only">
-      請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳 Shooting Image，使用模型 Llama 3.2/Gemma 4 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估
+      請前往 <a href="https://kws.oaselab.org/kws-ai/image-to-text/" target="_blank" class="link-btn">KWS AI (Image to Text/Voice)</a>，上傳拍攝圖片 (Shooting Image)，使用模型 Llama 3.2/Gemma 4 生成描述文字，並針對圖片與文字的相符程度進行 HEGAIText 評估
     </p>
 
     <div class="compare-panel">
@@ -144,7 +144,7 @@
 
     <div class="form-group hard-only">
       <label for="gaiTextCn">GAIText (Chinese)</label>
-      <textarea id="gaiTextCn" rows="2" placeholder="由 Shooting Image 生成的中文描述文字（選填）"></textarea>
+      <textarea id="gaiTextCn" rows="2" placeholder="由 Shooting Image 生成的中文描述文字"></textarea>
     </div>
 
     <div class="form-group">
@@ -173,7 +173,7 @@
     <div class="card-title"><span class="badge">Step 3</span> 文字描述生成圖片 與 HEGAIImage 評估</div>
 
     <p class="intro-desc">
-      請再次前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a>，輸入 GAIText (English) 來生成 GAIImage，並進行 HEGAIImage 評估：
+      請再次前往 <a href="https://kws.oaselab.org/kws-ai/text-to-image/" target="_blank" class="link-btn">KWS AI (Text/Voice to Image)</a>，輸入圖片描述文字 GAIText (English) 來生成圖片 GAIImage，並進行 HEGAIImage 評估
     </p>
     
     <div class="form-group gaiimage-box">
@@ -223,7 +223,7 @@
         </div>
       </div>
       <div class="form-group" style="margin-top: 12px;">
-        <label for="v2">HEGAIImage_v2 (評估 GAIImage 圖片與 GAIText (English) 的相符程度，0-10 分):</label>
+        <label for="v2">HEGAIImage_v2 (評估 GAIText (English) 圖片與 GAIImage 的相符程度，0-10 分):</label>
         <div class="slider-row">
           <input type="range" id="v2Range" min="0" max="10" step="1" value="5" oninput="syncInput('v2Range', 'v2', true, 0, 10)">
           <input type="number" id="v2" class="val-input" min="0" max="10" value="" placeholder="未定" oninput="syncInput('v2', 'v2Range', true, 0, 10)">
@@ -342,13 +342,13 @@
     </div>
 
     <div class="list-section">
-      <div class="list-section-title">③ 合併至 DataCollection(Stage 1).xlsx</div>
+      <div class="list-section-title">③ 匯出資料模型最終檔案(加入OASE Lab.團隊專家資料)</div>
       <div class="radio-row">
         <label class="radio-opt"><input type="radio" name="mergeMode" value="prepend" checked> 依序附加在頂端</label>
         <label class="radio-opt"><input type="radio" name="mergeMode" value="append"> 依序附加在底部</label>
         <label class="radio-opt"><input type="radio" name="mergeMode" value="random"> 隨機排列</label>
       </div>
-      <p class="hint-text">軟體與硬體資料都會合併（先軟體、後硬體）；新增的資料列會以紅色字標示，GAIFit 套用 HEGAIText*0.7 + HEGAIImage*0.3。</p>
+      <p class="hint-text">依序合併軟體與硬體資料，新增的資料列會以紅色字標示，GAIFit 套用 HEGAIText0.7 + HEGAIImage0.3。</p>
       <div class="actions">
         <button class="btn-primary" id="exportModelBtn" style="flex: 1;" onclick="exportModelXLSX()">📊 匯出資料模型(.xlsx)</button>
       </div>
