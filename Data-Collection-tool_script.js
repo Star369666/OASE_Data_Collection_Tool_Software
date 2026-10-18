@@ -354,7 +354,14 @@ function switchTab(tabId, btnId) {
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
   if (btnId) document.getElementById(btnId).classList.add('active');
-  if (tabId !== 'tab-list') lastStep[currentMode] = [tabId, btnId];
+  if (tabId === 'tab-list') {
+    // 一旦進入收集清單，根據目前模式 (軟體或硬體) 立即清空 Step 1 ~ Step 3 暫存表格
+    resetForm();
+    formStash[currentMode] = null;
+    lastStep[currentMode] = ['tab-Step1', 'btn-tab1'];
+  } else {
+    lastStep[currentMode] = [tabId, btnId];
+  }
   updateCancelBtnVisibility();
 }
 
@@ -366,13 +373,21 @@ function goBackTo(tabId, btnId) {
 function startNewRecord(mode) {
   if (!validateStep0('exportMsg')) return;
   if (mode && mode !== currentMode) setMode(mode);
-  resetForm();
-  switchTab('tab-Step1', 'btn-tab1');
+  const [tabId, btnId] = lastStep[currentMode] || ['tab-Step1', 'btn-tab1'];
+  switchTab(tabId, btnId);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function cancelToTab4() {
+function clearAllTempForms() {
   resetForm();
+  formStash.soft = null;
+  formStash.hard = null;
+  lastStep.soft = ['tab-Step1', 'btn-tab1'];
+  lastStep.hard = ['tab-Step1', 'btn-tab1'];
+  showNotice('exportMsg', '✅ 已清空軟體和硬體暫存表格！');
+}
+
+function cancelToTab4() {
   switchTab('tab-list', 'btn-tab4');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -723,15 +738,15 @@ function buildSoftSheet(workbook, sheet, list) {
   sheet.columns = [
     { key: 'A', width: 32.25 },
     { key: 'B', width: 13.0 },
-    { key: 'C', width: 13.0 },
+    { key: 'C', width: 27.38 },
     { key: 'D', width: 19.75 },
     { key: 'E', width: 18.66 },
-    { key: 'F', width: 47.08 },
+    { key: 'F', width: 58.5 },
     { key: 'G', width: 22.66 },
-    { key: 'H', width: 26.25 },
-    { key: 'I', width: 15.08 },
-    { key: 'J', width: 16.66 },
-    { key: 'K', width: 15.41 }
+    { key: 'H', width: 54.13 },
+    { key: 'I', width: 19.25 },
+    { key: 'J', width: 19.25 },
+    { key: 'K', width: 16.75 }
   ];
 
   const headerRow = sheet.getRow(1);
@@ -820,7 +835,7 @@ function buildSoftSheet(workbook, sheet, list) {
     }
 
     if (rec.img2) {
-      const cellW2_PX = 188;
+      const cellW2_PX = 386;
       const fit2 = calculateFitDimensions(rec.img2.width, rec.img2.height, TARGET_PX, TARGET_PX);
       const offsetX2 = ((cellW2_PX - fit2.width) / 2) / cellW2_PX;
       const offsetY2 = ((cellH_PX - fit2.height) / 2) / cellH_PX;
@@ -852,28 +867,28 @@ function buildHardSheet(workbook, sheet, list) {
     { key: 'B', width: 15.33 },
     { key: 'C', width: 14.58 },
     { key: 'D', width: 14.58 },
-    { key: 'E', width: 22.66 },
-    { key: 'F', width: 17.66 },
+    { key: 'E', width: 41.75 },
+    { key: 'F', width: 20.63 },
     { key: 'G', width: 29.0 },
-    { key: 'H', width: 15.08 },
-    { key: 'I', width: 16.66 },
-    { key: 'J', width: 18.25 }
+    { key: 'H', width: 19.63 },
+    { key: 'I', width: 19.63 },
+    { key: 'J', width: 23.25 }
   ];
 
-  // 每欄樣式：[header 字型, 資料 字型, 資料 水平對齊]
+  // 每欄樣式：[header 字型, 資料 字型, 全部置中]
   const f12 = (color, bold = false) => ({ name: TNR, size: 12, bold, color: { argb: color } });
   const f16 = (color) => ({ name: TNR, size: 16, bold: true, color: { argb: color } });
   const colStyles = [
-    { head: f12(BLACK),        data: f12(BLACK),                                                  align: 'center' }, // A
-    { head: f16(RED),          data: f16(RED),                                                    align: 'center' }, // B Distance
-    { head: f16(RED),          data: f16(RED),                                                    align: 'center' }, // C Light
-    { head: f12(PURPLE),       data: { name: '標楷體', size: 10, color: { argb: PURPLE } },        align: 'left' },   // D GAIText (Chinese)
-    { head: f12(PURPLE),       data: { name: TNR, size: 10, color: { argb: PURPLE } },            align: 'left' },   // E GAIText (English)
-    { head: f16(RED),          data: f16(RED),                                                    align: 'center' }, // F HEGAIText
-    { head: f12(BLACK),        data: f12(BLACK),                                                  align: 'center' }, // G GAIImage
-    { head: f12(PURPLE),       data: f12(PURPLE),                                                 align: 'center' }, // H v1
-    { head: f12(PURPLE),       data: f12(PURPLE),                                                 align: 'center' }, // I v2
-    { head: f16(RED),          data: f16(RED),                                                    align: 'center' }  // J HEGAIImage
+    { head: f12(BLACK),  data: f12(BLACK) },                                           // A
+    { head: f16(RED),    data: f16(RED) },                                             // B Distance
+    { head: f16(RED),    data: f16(RED) },                                             // C Light
+    { head: f12(PURPLE), data: { name: '標楷體', size: 10, color: { argb: PURPLE } } }, // D GAIText (Chinese)
+    { head: f12(PURPLE), data: { name: TNR, size: 10, color: { argb: PURPLE } } },     // E GAIText (English)
+    { head: f16(RED),    data: f16(RED) },                                             // F HEGAIText
+    { head: f12(BLACK),  data: f12(BLACK) },                                           // G GAIImage
+    { head: f12(PURPLE), data: f12(PURPLE) },                                          // H v1
+    { head: f12(PURPLE), data: f12(PURPLE) },                                          // I v2
+    { head: f16(RED),    data: f16(RED) }                                              // J HEGAIImage
   ];
 
   const headerValues = [
@@ -898,10 +913,11 @@ function buildHardSheet(workbook, sheet, list) {
     cell.border = MEDIUM_BORDER;
   });
 
+  // 圖片尺寸嚴格控制在格子寬度內並置中 (A欄 30/245px、G欄 28.38/232px)
+  const TARGET_PX = 151;
   const CELL_H_PX = 255;
-  const COL_A_PX = 220;
-  const COL_G_PX = 208;
-  const MAX_H_PX = 235;
+  const COL_A_PX = 218;
+  const COL_G_PX = 206;
 
   list.forEach((rec, idx) => {
     const rowNum = idx + 2;
@@ -920,12 +936,12 @@ function buildHardSheet(workbook, sheet, list) {
       const c = row.getCell(col);
       c.font = colStyles[col - 1].data;
       c.border = MEDIUM_BORDER;
-      c.alignment = { horizontal: colStyles[col - 1].align, vertical: 'middle', wrapText: true };
+      c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     }
 
     const placeImage = (img, colIdx, colPx) => {
       if (!img) return;
-      const fit = calculateFitDimensions(img.width, img.height, colPx - 16, MAX_H_PX);
+      const fit = calculateFitDimensions(img.width, img.height, TARGET_PX, TARGET_PX);
       const offX = ((colPx - fit.width) / 2) / colPx;
       const offY = ((CELL_H_PX - fit.height) / 2) / CELL_H_PX;
       const id = workbook.addImage({ base64: img.base64, extension: img.ext });
@@ -977,11 +993,13 @@ async function exportAllXLSX() {
 
   try {
     const workbook = new ExcelJS.Workbook();
-    if (tplMode === 'both' || tplMode === 'soft') {
+    if (tplMode === 'both') {
       buildSoftSheet(workbook, workbook.addWorksheet('軟體'), records);
-    }
-    if (tplMode === 'both' || tplMode === 'hard') {
       buildHardSheet(workbook, workbook.addWorksheet('硬體'), hwRecords);
+    } else if (tplMode === 'soft') {
+      buildSoftSheet(workbook, workbook.addWorksheet('工作表1'), records);
+    } else if (tplMode === 'hard') {
+      buildHardSheet(workbook, workbook.addWorksheet('工作表1'), hwRecords);
     }
 
     const buffer = await workbook.xlsx.writeBuffer();

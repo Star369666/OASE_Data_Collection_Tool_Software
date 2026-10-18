@@ -324,6 +324,7 @@
       <div class="actions">
         <button class="btn-add" style="flex: 1;" onclick="startNewRecord('soft')">＋ 繼續收集軟體資料</button>
         <button class="btn-add" style="flex: 1;" onclick="startNewRecord('hard')">＋ 繼續收集硬體資料</button>
+        <button class="btn-secondary" id="clearTempBtn" style="flex: 1;" onclick="clearAllTempForms()">🗑️ 清空軟體和硬體暫存表格</button>
       </div>
     </div>
 
@@ -343,8 +344,8 @@
     <div class="list-section">
       <div class="list-section-title">③ 合併至 DataCollection(Stage 1).xlsx</div>
       <div class="radio-row">
-        <label class="radio-opt"><input type="radio" name="mergeMode" value="append" checked> 依序附加在底部</label>
-        <label class="radio-opt"><input type="radio" name="mergeMode" value="prepend"> 依序附加在頂端</label>
+        <label class="radio-opt"><input type="radio" name="mergeMode" value="prepend" checked> 依序附加在頂端</label>
+        <label class="radio-opt"><input type="radio" name="mergeMode" value="append"> 依序附加在底部</label>
         <label class="radio-opt"><input type="radio" name="mergeMode" value="random"> 隨機排列</label>
       </div>
       <p class="hint-text">軟體與硬體資料都會合併（先軟體、後硬體）；新增的資料列會以紅色字標示，GAIFit 套用 HEGAIText*0.7 + HEGAIImage*0.3。</p>
