@@ -77,7 +77,9 @@
    - **第二組對照（評估 GAIText (English) 圖片與 GAIImage 的相符程度）**：設定 **HEGAIImage_v2 (`0–10 分`)**（左側為 GAIText (English)，右側為 GAIImage）。
 4. 下方會即時顯示加權後的 **HEGAIImage** 分數：
 
-   $\text{HEGAIImage} = \text{round}\left(w_1 \times \text{HEGAIImage}_{\text{v1}} + w_2 \times \text{HEGAIImage}_{\text{v2}},\ 1\right)$
+   ```math
+    \text{HEGAIImage} = \text{round}\left(w_1 \times \text{HEGAIImage}_{\text{v1}} + w_2 \times \text{HEGAIImage}_{\text{v2}},\ 1\right)
+    ```
    
 6. 點擊「**💾 儲存並前往收集清單**」。
 
