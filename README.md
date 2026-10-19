@@ -73,10 +73,10 @@
 1. 點擊連結再次前往 [KWS AI (Text/Voice to Image)](https://kws.oaselab.org/kws-ai/text-to-image/)，輸入 Step 2 的圖片描述文字 **GAIText (English)** 生成新圖片 **GAIImage** 並下載。
 2. 於 **GAIImage** 欄位上傳該張新生成的圖片。
 3. 進行兩項相符程度評估（畫面提供左右並排對照視窗）：
-   - **HEGAIImage_v1 (`0–10 分`)**：評估第一張圖（Generated Image / Shooting Image）與 **GAIImage** 的圖圖相符程度。
-   - **HEGAIImage_v2 (`0–10 分`)**：評估 **GAIText (English)** 與 **GAIImage** 的圖文相符程度。
+   - **第一組對照（評估 Generated Image / Shooting Image 與 GAIImage 的相符程度）**：設定 **HEGAIImage_v1 (`0–10 分`)**（左側為 Generated Image / Shooting Image，右側為 GAIImage）。
+   - **第二組對照（評估 GAIText (English) 圖片與 GAIImage 的相符程度）**：設定 **HEGAIImage_v2 (`0–10 分`)**（左側為 GAIText (English)，右側為 GAIImage）。
 4. 下方會即時顯示加權後的 **HEGAIImage** 分數：
-   $$\text{HEGAIImage} = \text{round}(w_1 \times \text{HEGAIImage\_v1} + w_2 \times \text{HEGAIImage\_v2},\ 1)$$
+   $$\text{HEGAIImage} = \text{round}\left(w_1 \times \text{HEGAIImage}_{\text{v1}} + w_2 \times \text{HEGAIImage}_{\text{v2}},\ 1\right)$$
 5. 點擊「**💾 儲存並前往收集清單**」。
 
 ---
