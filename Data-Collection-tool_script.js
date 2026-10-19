@@ -459,11 +459,137 @@ function setupStrictIntInput(id, min, max) {
   }, true);
 }
 
+function setupClampedIntInput(id, min, max) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const maxStr = String(max);
+  let lastValid = isValidStrictInt(el.value, min, max) ? el.value : '';
+
+  const syncLastValid = () => {
+    if (!(el.validity && el.validity.badInput) && isValidStrictInt(el.value, min, max)) {
+      lastValid = el.value;
+    }
+  };
+
+  const restoreLastValid = () => {
+    if (lastValid === '') {
+      el.value = '0';
+      el.value = '';
+    } else {
+      el.value = '';
+      el.value = lastValid;
+    }
+  };
+
+  el.addEventListener('focus', syncLastValid, true);
+
+  el.addEventListener('keydown', (e) => {
+    syncLastValid();
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const allowedKeys = [
+      'Backspace', 'Delete', 'Tab', 'Enter', 'Escape',
+      'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'
+    ];
+    if (allowedKeys.includes(e.key)) return;
+
+    // 1. 禁止數字以外的任何符號與字母（如 a-z、!@#-+.eE 等）
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+
+    // 3. 若數值已經是最大值（或已為 0），不得再輸入數字
+    if (lastValid === maxStr || lastValid === '0') {
+      e.preventDefault();
+      return;
+    }
+
+    // 2. 若按下數字後數值超出範圍，則直接填入最大值
+    const candidate = lastValid + e.key;
+    if (Number(candidate) > max) {
+      e.preventDefault();
+      el.value = maxStr;
+      lastValid = maxStr;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }, true);
+
+  el.addEventListener('beforeinput', (e) => {
+    syncLastValid();
+    if (e.inputType && e.inputType.startsWith('delete')) return;
+    if (e.data != null) {
+      if (!/^[0-9]+$/.test(e.data)) {
+        e.preventDefault();
+        return;
+      }
+      if (lastValid === maxStr || lastValid === '0') {
+        e.preventDefault();
+        return;
+      }
+      const candidate = lastValid + e.data;
+      if (/^0[0-9]+$/.test(candidate)) {
+        e.preventDefault();
+        return;
+      }
+      if (Number(candidate) > max) {
+        e.preventDefault();
+        el.value = maxStr;
+        lastValid = maxStr;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+  }, true);
+
+  el.addEventListener('paste', (e) => {
+    syncLastValid();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    if (!/^[0-9]+$/.test(pasted) || lastValid === maxStr || lastValid === '0') {
+      e.preventDefault();
+      return;
+    }
+    const candidate = lastValid + pasted;
+    if (/^0[0-9]+$/.test(candidate)) {
+      e.preventDefault();
+      return;
+    }
+    if (Number(candidate) > max) {
+      e.preventDefault();
+      el.value = maxStr;
+      lastValid = maxStr;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }, true);
+
+  el.addEventListener('input', (e) => {
+    const isDelete = e.inputType && e.inputType.startsWith('delete');
+    const isSpinOrReplace = e.inputType === 'insertReplacementText' || e.inputType == null;
+    if ((el.validity && el.validity.badInput) || !/^[0-9]*$/.test(el.value) || /^0[0-9]+$/.test(el.value)) {
+      restoreLastValid();
+      e.stopImmediatePropagation();
+      return;
+    }
+    if (!isDelete && !isSpinOrReplace && (lastValid === maxStr || lastValid === '0')) {
+      restoreLastValid();
+      e.stopImmediatePropagation();
+      return;
+    }
+    if (el.value !== '' && Number(el.value) > max) {
+      el.value = maxStr;
+      lastValid = maxStr;
+      return;
+    }
+    lastValid = el.value;
+  }, true);
+}
+
 function initStrictIntInputs() {
   setupStrictIntInput('weightImgInput', 0, 100);
-  setupStrictIntInput('hegaiText', 0, 10);
-  setupStrictIntInput('v1', 0, 10);
-  setupStrictIntInput('v2', 0, 10);
+  setupClampedIntInput('distance', 0, 255);
+  setupClampedIntInput('light', 0, 4000);
+  setupClampedIntInput('hegaiText', 0, 10);
+  setupClampedIntInput('v1', 0, 10);
+  setupClampedIntInput('v2', 0, 10);
 }
 
 function syncInput(sourceId, targetId, triggerCalc = false, min = null, max = null) {
