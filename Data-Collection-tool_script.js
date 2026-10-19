@@ -1066,12 +1066,12 @@ async function exportAllXLSX() {
   try {
     const workbook = new ExcelJS.Workbook();
     if (tplMode === 'both') {
-      buildSoftSheet(workbook, workbook.addWorksheet('軟體'), records);
-      buildHardSheet(workbook, workbook.addWorksheet('硬體'), hwRecords);
+      buildSoftSheet(workbook, workbook.addWorksheet(tr('軟體', 'Software')), records);
+      buildHardSheet(workbook, workbook.addWorksheet(tr('硬體', 'Hardware')), hwRecords);
     } else if (tplMode === 'soft') {
-      buildSoftSheet(workbook, workbook.addWorksheet('工作表1'), records);
+      buildSoftSheet(workbook, workbook.addWorksheet(tr('工作表1', 'Sheet 1')), records);
     } else if (tplMode === 'hard') {
-      buildHardSheet(workbook, workbook.addWorksheet('工作表1'), hwRecords);
+      buildHardSheet(workbook, workbook.addWorksheet(tr('工作表1', 'Sheet 1')), hwRecords);
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
@@ -1146,6 +1146,7 @@ async function exportModelXLSX() {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(buffer);
     const sheet = workbook.worksheets[0];
+    sheet.name = tr('工作表1', 'Sheet 1');
 
     // 1. 找出最後一列有資料的 row（原檔預先格式化到 1000 列）
     let lastRow = 1;
