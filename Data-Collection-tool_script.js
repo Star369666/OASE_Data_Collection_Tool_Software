@@ -48,6 +48,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initLang();
   applyModeUI();
+  initStrictIntInputs();
 
   const initialSliderVal = Math.round(CONFIG.defaultTextWeight * 100);
   const slider = document.getElementById('weightSlider');
@@ -365,8 +366,106 @@ function renderRecordTable() {
 }
 
 // ----------------------------------------------------
-// 輸入防呆與同步
+// 輸入防呆與同步（權重 0-100、HEGAIText / HEGAIImage_v1 / v2 0-10 僅允許輸入範圍內非負整數）
 // ----------------------------------------------------
+function isValidStrictInt(str, min, max) {
+  if (str === '') return true;
+  if (!/^(0|[1-9][0-9]*)$/.test(str)) return false;
+  const num = Number(str);
+  return num >= min && num <= max;
+}
+
+function setupStrictIntInput(id, min, max) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  let lastValid = isValidStrictInt(el.value, min, max) ? el.value : '';
+
+  const syncLastValid = () => {
+    if (!(el.validity && el.validity.badInput) && isValidStrictInt(el.value, min, max)) {
+      lastValid = el.value;
+    }
+  };
+
+  const restoreLastValid = () => {
+    if (lastValid === '') {
+      el.value = '0';
+      el.value = '';
+    } else {
+      el.value = '';
+      el.value = lastValid;
+    }
+  };
+
+  el.addEventListener('focus', syncLastValid, true);
+
+  el.addEventListener('keydown', (e) => {
+    syncLastValid();
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const allowedKeys = [
+      'Backspace', 'Delete', 'Tab', 'Enter', 'Escape',
+      'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'
+    ];
+    if (allowedKeys.includes(e.key)) return;
+
+    // 1. 禁止數字以外的任何符號與字母（如 a-z、!@#-+.eE 等）
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+
+    // 2. 輸入符合範圍的數字後，若再按數字會超出範圍或產生前導 0（如輸入 6 再按 1 變成 61），必須先刪掉才能重打
+    if (lastValid !== '' && !isValidStrictInt(lastValid + e.key, min, max)) {
+      e.preventDefault();
+    }
+  }, true);
+
+  el.addEventListener('beforeinput', (e) => {
+    syncLastValid();
+    if (e.inputType && e.inputType.startsWith('delete')) return;
+    if (e.data != null) {
+      if (!/^[0-9]+$/.test(e.data)) {
+        e.preventDefault();
+        return;
+      }
+      if (!isValidStrictInt(lastValid + e.data, min, max)) {
+        e.preventDefault();
+      }
+    }
+  }, true);
+
+  el.addEventListener('paste', (e) => {
+    syncLastValid();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    if (!/^[0-9]+$/.test(pasted) || !isValidStrictInt(lastValid + pasted, min, max)) {
+      e.preventDefault();
+    }
+  }, true);
+
+  el.addEventListener('input', (e) => {
+    const isDelete = e.inputType && e.inputType.startsWith('delete');
+    const isSpinOrReplace = e.inputType === 'insertReplacementText' || e.inputType == null;
+    if ((el.validity && el.validity.badInput) || !isValidStrictInt(el.value, min, max)) {
+      restoreLastValid();
+      e.stopImmediatePropagation();
+      return;
+    }
+    if (!isDelete && !isSpinOrReplace && lastValid !== '' && !el.value.startsWith(lastValid)) {
+      restoreLastValid();
+      e.stopImmediatePropagation();
+      return;
+    }
+    lastValid = el.value;
+  }, true);
+}
+
+function initStrictIntInputs() {
+  setupStrictIntInput('weightImgInput', 0, 100);
+  setupStrictIntInput('hegaiText', 0, 10);
+  setupStrictIntInput('v1', 0, 10);
+  setupStrictIntInput('v2', 0, 10);
+}
+
 function syncInput(sourceId, targetId, triggerCalc = false, min = null, max = null) {
   const source = document.getElementById(sourceId);
   const target = document.getElementById(targetId);
